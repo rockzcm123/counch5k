@@ -37,6 +37,7 @@
 		A1000000000000000000001C /* AppLocalization.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000020 /* AppLocalization.swift */; };
 		A1000000000000000000001D /* AppLocalization.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000020 /* AppLocalization.swift */; };
 		A1000000000000000000001E /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = A70000000000000000000009 /* InfoPlist.strings */; };
+		A1000000000000000000001F /* AboutMeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000023 /* AboutMeView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -105,6 +106,7 @@
 		A20000000000000000000020 /* AppLocalization.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppLocalization.swift; sourceTree = "<group>"; };
 		A20000000000000000000021 /* InfoPlist.strings */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = InfoPlist.strings; path = en.lproj/InfoPlist.strings; sourceTree = "<group>"; };
 		A20000000000000000000022 /* InfoPlist.strings */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = InfoPlist.strings; path = "zh-Hans.lproj/InfoPlist.strings"; sourceTree = "<group>"; };
+		A20000000000000000000023 /* AboutMeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AboutMeView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -197,6 +199,7 @@
 				A2000000000000000000000B /* WorkoutPlayerView.swift */,
 				A2000000000000000000000F /* HistoryView.swift */,
 				A20000000000000000000016 /* CustomWorkoutsView.swift */,
+				A20000000000000000000023 /* AboutMeView.swift */,
 			);
 			path = Views;
 			sourceTree = "<group>";
@@ -389,6 +392,7 @@
 				A10000000000000000000012 /* CustomWorkout.swift in Sources */,
 				A10000000000000000000013 /* CustomWorkoutsView.swift in Sources */,
 				A1000000000000000000001C /* AppLocalization.swift in Sources */,
+				A1000000000000000000001F /* AboutMeView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

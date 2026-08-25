@@ -441,6 +441,12 @@ private struct PreferencesView: View {
     var body: some View {
         NavigationStack {
             Form {
+                Section(L10n.profile) {
+                    NavigationLink(L10n.aboutMe) {
+                        AboutMeView()
+                    }
+                }
+
                 Section(L10n.appLanguage) {
                     AppLanguagePicker(language: $appLanguage)
                 }

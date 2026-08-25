@@ -182,6 +182,26 @@ enum L10n {
     static var appLanguage: String { text("App 语言", "App Language") }
     static var reminderSetupFailed: String { text("无法设置提醒", "Unable to Set Reminder") }
 
+    static var profile: String { text("个人资料", "Profile") }
+    static var aboutMe: String { text("关于我", "About Me") }
+    static var personalDetails: String { text("个人信息", "Personal Details") }
+    static var yourName: String { text("姓名", "Name") }
+    static var namePlaceholder: String { text("输入姓名", "Enter your name") }
+    static var birthdate: String { text("出生日期", "Birthdate") }
+    static var age: String { text("年龄", "Age") }
+    static var notSet: String { text("未设置", "Not set") }
+    static var bodyMeasurements: String { text("身体数据", "Body Measurements") }
+    static var height: String { text("身高", "Height") }
+    static var weight: String { text("体重", "Weight") }
+    static var centimeters: String { text("厘米", "cm") }
+    static var inches: String { text("英寸", "in") }
+    static var kilograms: String { text("公斤", "kg") }
+    static var pounds: String { text("磅", "lb") }
+
+    static func ageYears(_ years: Int) -> String {
+        text("\(years) 岁", years == 1 ? "1 year old" : "\(years) years old")
+    }
+
     static var onboardingStartWalkingTitle: String { text("从走路开始", "Start with Walking") }
     static var onboardingStartWalkingMessage: String {
         text(
