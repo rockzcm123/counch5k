@@ -1,0 +1,3 @@
+"NSHealthShareUsageDescription" = "Read health data related to your running workouts.";
+"NSHealthUpdateUsageDescription" = "Save completed running workouts, distance, and routes to Health.";
+"NSLocationWhenInUseUsageDescription" = "Record running distance, pace, and route during workouts.";

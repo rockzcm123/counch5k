@@ -1,0 +1,3 @@
+"NSHealthShareUsageDescription" = "用于读取与你跑步训练相关的健康数据。";
+"NSHealthUpdateUsageDescription" = "用于将完成的跑步训练、距离和路线保存到健康 App。";
+"NSLocationWhenInUseUsageDescription" = "用于在训练时记录跑步距离、配速和路线。";
