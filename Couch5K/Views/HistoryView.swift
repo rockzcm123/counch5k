@@ -13,6 +13,10 @@ struct HistoryView: View {
         of: .month,
         for: .now
     )?.start ?? .now
+    @State private var selectedDate: Date?
+    @State private var visibleRecordCount = HistoryView.pageSize
+
+    private static let pageSize = 20
 
     var body: some View {
         NavigationStack {
@@ -30,21 +34,65 @@ struct HistoryView: View {
                         chartsSection
                         activityCalendarSection
 
-                        Section(L10n.allWorkouts) {
-                            ForEach(records) { record in
-                                NavigationLink {
-                                    WorkoutRecordDetailView(record: record)
-                                } label: {
-                                    recordRow(record)
+                        Section {
+                            if filteredRecords.isEmpty {
+                                Text(L10n.noWorkoutsThisDay)
+                                    .foregroundStyle(.secondary)
+                            } else {
+                                ForEach(displayedRecords) { record in
+                                    NavigationLink {
+                                        WorkoutRecordDetailView(record: record)
+                                    } label: {
+                                        recordRow(record)
+                                    }
+                                }
+                                .onDelete(perform: delete)
+
+                                if hasMoreRecords {
+                                    Button(L10n.loadMore) {
+                                        withAnimation {
+                                            visibleRecordCount += HistoryView.pageSize
+                                        }
+                                    }
+                                    .frame(maxWidth: .infinity)
                                 }
                             }
-                            .onDelete(perform: delete)
+                        } header: {
+                            HStack {
+                                Text(selectedDate.map(L10n.workoutsOnDate) ?? L10n.allWorkouts)
+                                if selectedDate != nil {
+                                    Spacer()
+                                    Button(L10n.showAllWorkouts) {
+                                        withAnimation {
+                                            selectedDate = nil
+                                        }
+                                    }
+                                    .font(.caption)
+                                    .textCase(nil)
+                                }
+                            }
                         }
                     }
                 }
             }
             .navigationTitle(L10n.workoutHistory)
+            .onChange(of: selectedDate) { _, _ in
+                visibleRecordCount = HistoryView.pageSize
+            }
         }
+    }
+
+    private var filteredRecords: [WorkoutRecord] {
+        guard let selectedDate else { return records }
+        return recordsOnDay(selectedDate)
+    }
+
+    private var displayedRecords: [WorkoutRecord] {
+        Array(filteredRecords.prefix(visibleRecordCount))
+    }
+
+    private var hasMoreRecords: Bool {
+        filteredRecords.count > displayedRecords.count
     }
 
     private var activityCalendarSection: some View {
@@ -139,29 +187,44 @@ struct HistoryView: View {
         let workoutCount = recordsOnDay(date).count
         let hasWorkout = workoutCount > 0
         let isToday = Calendar.current.isDateInToday(date)
+        let isSelected = selectedDate.map {
+            Calendar.current.isDate($0, inSameDayAs: date)
+        } ?? false
 
-        return ZStack {
-            Circle()
-                .fill(hasWorkout ? Color.brandPink : Color.secondary.opacity(0.08))
-
-            if isToday && !hasWorkout {
+        return Button {
+            withAnimation(.easeInOut(duration: 0.2)) {
+                selectedDate = isSelected ? nil : date
+            }
+        } label: {
+            ZStack {
                 Circle()
-                    .stroke(Color.brandPink, lineWidth: 1.5)
-            }
+                    .fill(hasWorkout ? Color.brandPink : Color.secondary.opacity(0.08))
 
-            Text("\(Calendar.current.component(.day, from: date))")
-                .font(.subheadline.weight(hasWorkout ? .bold : .regular))
-                .foregroundStyle(hasWorkout ? Color.white : Color.primary)
+                if isSelected {
+                    Circle()
+                        .stroke(Color.brandPink, lineWidth: 2)
+                        .padding(-3)
+                } else if isToday && !hasWorkout {
+                    Circle()
+                        .stroke(Color.brandPink, lineWidth: 1.5)
+                }
 
-            if hasWorkout {
-                Image(systemName: workoutCount > 1 ? "checkmark.circle.fill" : "checkmark")
-                    .font(.system(size: 8, weight: .bold))
-                    .foregroundStyle(.white)
-                    .offset(x: 12, y: -12)
+                Text("\(Calendar.current.component(.day, from: date))")
+                    .font(.subheadline.weight(hasWorkout ? .bold : .regular))
+                    .foregroundStyle(hasWorkout ? Color.white : Color.primary)
+
+                if hasWorkout {
+                    Image(systemName: workoutCount > 1 ? "checkmark.circle.fill" : "checkmark")
+                        .font(.system(size: 8, weight: .bold))
+                        .foregroundStyle(.white)
+                        .offset(x: 12, y: -12)
+                }
             }
+            .frame(width: 38, height: 38)
+            .frame(maxWidth: .infinity)
+            .contentShape(Rectangle())
         }
-        .frame(width: 38, height: 38)
-        .frame(maxWidth: .infinity)
+        .buttonStyle(.plain)
         .accessibilityElement(children: .ignore)
         .accessibilityLabel(
             L10n.calendarDayAccessibility(
@@ -169,6 +232,7 @@ struct HistoryView: View {
                 workoutCount: workoutCount
             )
         )
+        .accessibilityAddTraits(isSelected ? .isSelected : [])
     }
 
     private var badgesSection: some View {
@@ -591,6 +655,7 @@ struct HistoryView: View {
         }
         withAnimation(.easeInOut(duration: 0.2)) {
             displayedMonth = month
+            selectedDate = nil
         }
     }
 
@@ -770,7 +835,7 @@ struct HistoryView: View {
 
     private func delete(at offsets: IndexSet) {
         for index in offsets {
-            modelContext.delete(records[index])
+            modelContext.delete(displayedRecords[index])
         }
         do {
             try modelContext.save()

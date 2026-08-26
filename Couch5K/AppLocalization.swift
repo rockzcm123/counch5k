@@ -433,6 +433,20 @@ enum L10n {
             : ["Almost there.", "You're so close.", "Just a little longer.", "One final push."]
     }
 
+    static var showAllWorkouts: String { text("显示全部", "Show All") }
+    static var noWorkoutsThisDay: String { text("这一天没有训练记录", "No workouts on this day") }
+    static var loadMore: String { text("加载更多", "Load More") }
+
+    static func workoutsOnDate(_ date: Date) -> String {
+        let dateText = date.formatted(
+            .dateTime
+                .month(.wide)
+                .day()
+                .locale(AppLanguage.current.locale)
+        )
+        return text("\(dateText)的训练", "Workouts on \(dateText)")
+    }
+
     static var noHistory: String { text("还没有训练记录", "No Workouts Yet") }
     static var noHistoryDescription: String {
         text("完成第一次训练后，记录会显示在这里。", "Your workouts will appear here after you complete your first one.")
