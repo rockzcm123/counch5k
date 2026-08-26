@@ -180,6 +180,14 @@ enum L10n {
         )
     }
     static var appLanguage: String { text("App 语言", "App Language") }
+    static var appearance: String { text("外观", "Appearance") }
+    static var colorTheme: String { text("配色主题", "Color Theme") }
+    static var themePink: String { text("粉色", "Pink") }
+    static var themeBlue: String { text("蓝色", "Blue") }
+    static var themeGreen: String { text("绿色", "Green") }
+    static var themeOrange: String { text("橙色", "Orange") }
+    static var themePurple: String { text("紫色", "Purple") }
+    static var themeTeal: String { text("青色", "Teal") }
     static var reminderSetupFailed: String { text("无法设置提醒", "Unable to Set Reminder") }
 
     static var profile: String { text("个人资料", "Profile") }

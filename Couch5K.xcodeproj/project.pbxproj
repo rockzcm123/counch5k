@@ -38,6 +38,7 @@
 		A1000000000000000000001D /* AppLocalization.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000020 /* AppLocalization.swift */; };
 		A1000000000000000000001E /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = A70000000000000000000009 /* InfoPlist.strings */; };
 		A1000000000000000000001F /* AboutMeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000023 /* AboutMeView.swift */; };
+		A10000000000000000000020 /* AppTheme.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000024 /* AppTheme.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -107,6 +108,7 @@
 		A20000000000000000000021 /* InfoPlist.strings */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = InfoPlist.strings; path = en.lproj/InfoPlist.strings; sourceTree = "<group>"; };
 		A20000000000000000000022 /* InfoPlist.strings */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = InfoPlist.strings; path = "zh-Hans.lproj/InfoPlist.strings"; sourceTree = "<group>"; };
 		A20000000000000000000023 /* AboutMeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AboutMeView.swift; sourceTree = "<group>"; };
+		A20000000000000000000024 /* AppTheme.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppTheme.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -150,6 +152,7 @@
 				A20000000000000000000001 /* Couch5KApp.swift */,
 				A20000000000000000000002 /* RootView.swift */,
 				A20000000000000000000020 /* AppLocalization.swift */,
+				A20000000000000000000024 /* AppTheme.swift */,
 				A20000000000000000000013 /* Couch5K.entitlements */,
 				A2000000000000000000001D /* Info.plist */,
 				A70000000000000000000009 /* InfoPlist.strings */,
@@ -231,18 +234,6 @@
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
-
-/* Begin PBXVariantGroup section */
-		A70000000000000000000009 /* InfoPlist.strings */ = {
-			isa = PBXVariantGroup;
-			children = (
-				A20000000000000000000021 /* InfoPlist.strings */,
-				A20000000000000000000022 /* InfoPlist.strings */,
-			);
-			name = InfoPlist.strings;
-			sourceTree = "<group>";
-		};
-/* End PBXVariantGroup section */
 
 /* Begin PBXNativeTarget section */
 		A50000000000000000000001 /* Couch5K */ = {
@@ -393,6 +384,7 @@
 				A10000000000000000000013 /* CustomWorkoutsView.swift in Sources */,
 				A1000000000000000000001C /* AppLocalization.swift in Sources */,
 				A1000000000000000000001F /* AboutMeView.swift in Sources */,
+				A10000000000000000000020 /* AppTheme.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -433,6 +425,18 @@
 			targetProxy = A30000000000000000000003 /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
+
+/* Begin PBXVariantGroup section */
+		A70000000000000000000009 /* InfoPlist.strings */ = {
+			isa = PBXVariantGroup;
+			children = (
+				A20000000000000000000021 /* InfoPlist.strings */,
+				A20000000000000000000022 /* InfoPlist.strings */,
+			);
+			name = InfoPlist.strings;
+			sourceTree = "<group>";
+		};
+/* End PBXVariantGroup section */
 
 /* Begin XCBuildConfiguration section */
 		AB0000000000000000000001 /* Debug */ = {
@@ -561,6 +565,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_ENTITLEMENTS = Couch5K/Couch5K.entitlements;
+				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = CD5L52Y9AB;
@@ -580,6 +585,7 @@
 				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.Rock.Couch5K;
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				PROVISIONING_PROFILE_SPECIFIER = "";
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
 				SUPPORTS_MACCATALYST = NO;
 				SWIFT_EMIT_LOC_STRINGS = YES;
@@ -593,6 +599,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_ENTITLEMENTS = Couch5K/Couch5K.entitlements;
+				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = CD5L52Y9AB;
@@ -612,6 +619,7 @@
 				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.Rock.Couch5K;
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				PROVISIONING_PROFILE_SPECIFIER = "";
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
 				SUPPORTS_MACCATALYST = NO;
 				SWIFT_EMIT_LOC_STRINGS = YES;

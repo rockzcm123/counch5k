@@ -13,8 +13,13 @@ struct ProgramOverviewView: View {
     @State private var isShowingSettings = false
     @State private var selectedWorkout: SelectedWorkout?
     @State private var healthMessage: String?
+    @AppStorage(AppTheme.storageKey) private var colorTheme = AppTheme.pink.rawValue
 
     private let healthService = HealthKitService()
+
+    private var themeColor: Color {
+        AppTheme(rawValue: colorTheme)?.color ?? .brandPink
+    }
 
     private struct SelectedWorkout: Identifiable {
         let workout: PlannedWorkout
@@ -49,7 +54,7 @@ struct ProgramOverviewView: View {
                 Label(L10n.customTab, systemImage: "slider.horizontal.3")
             }
         }
-        .tint(.brandPink)
+        .tint(themeColor)
         .fullScreenCover(item: $selectedWorkout) { selection in
             WorkoutPlayerView(
                 weekNumber: selection.workout.weekNumber,
@@ -119,9 +124,9 @@ struct ProgramOverviewView: View {
         return HStack(alignment: .top, spacing: 14) {
             Image(systemName: "quote.opening")
                 .font(.title2)
-                .foregroundStyle(Color.brandPink)
+                .foregroundStyle(themeColor)
                 .frame(width: 44, height: 44)
-                .background(Color.brandPink.opacity(0.11), in: Circle())
+                .background(themeColor.opacity(0.11), in: Circle())
 
             VStack(alignment: .leading, spacing: 7) {
                 HStack {
@@ -134,12 +139,12 @@ struct ProgramOverviewView: View {
 
                     Text(prompt.principle)
                         .font(.caption2.bold())
-                        .foregroundStyle(Color.brandPink)
+                        .foregroundStyle(themeColor)
                         .lineLimit(1)
                         .fixedSize(horizontal: true, vertical: false)
                         .padding(.horizontal, 9)
                         .padding(.vertical, 5)
-                        .background(Color.brandPink.opacity(0.1), in: Capsule())
+                        .background(themeColor.opacity(0.1), in: Capsule())
                 }
 
                 Text(prompt.message)
@@ -155,7 +160,7 @@ struct ProgramOverviewView: View {
         )
         .overlay {
             RoundedRectangle(cornerRadius: 20)
-                .stroke(Color.brandPink.opacity(0.13))
+                .stroke(themeColor.opacity(0.13))
         }
         .accessibilityElement(children: .combine)
     }
@@ -180,7 +185,7 @@ struct ProgramOverviewView: View {
 
                 Image(systemName: nextWorkout == nil && !isResuming ? "trophy.circle.fill" : "figure.run.circle.fill")
                     .font(.system(size: 44))
-                    .foregroundStyle(Color.brandPink)
+                    .foregroundStyle(themeColor)
             }
 
             if let workout {
@@ -225,7 +230,7 @@ struct ProgramOverviewView: View {
         .padding(20)
         .background(
             LinearGradient(
-                colors: [Color.brandPink.opacity(0.14), Color(.secondarySystemGroupedBackground)],
+                colors: [themeColor.opacity(0.14), Color(.secondarySystemGroupedBackground)],
                 startPoint: .topLeading,
                 endPoint: .bottomTrailing
             ),
@@ -245,7 +250,7 @@ struct ProgramOverviewView: View {
             }
 
             ProgressView(value: Double(completedKeys.count), total: Double(plan.sessionCount))
-                .tint(.brandPink)
+                .tint(themeColor)
 
             Text(completedKeys.count == plan.sessionCount ? L10n.allPlanComplete : L10n.planProgressMessage)
                 .font(.footnote)
@@ -271,7 +276,7 @@ struct ProgramOverviewView: View {
                         .font(.headline)
                         .frame(width: 42, height: 42)
                         .foregroundStyle(.white)
-                        .background(weekIsComplete(week) ? Color.green : Color.brandPink, in: Circle())
+                        .background(weekIsComplete(week) ? Color.green : themeColor, in: Circle())
 
                     VStack(alignment: .leading, spacing: 3) {
                         Text(L10n.weekTitle(week.number))
@@ -350,7 +355,7 @@ struct ProgramOverviewView: View {
                 .foregroundStyle(.secondary)
 
             Image(systemName: isComplete ? "arrow.clockwise.circle.fill" : "play.circle.fill")
-                .foregroundStyle(Color.brandPink)
+                .foregroundStyle(themeColor)
         }
         .padding(.vertical, 13)
     }
@@ -433,6 +438,7 @@ private struct PreferencesView: View {
     @AppStorage("reminderWeekdays") private var storedWeekdays = "2,4,7"
     @AppStorage("reminderHour") private var reminderHour = 7
     @AppStorage("reminderMinute") private var reminderMinute = 0
+    @AppStorage(AppTheme.storageKey) private var colorTheme = AppTheme.pink.rawValue
 
     @State private var selectedWeekdays: Set<Int> = []
     @State private var reminderTime = Date.now
@@ -455,6 +461,10 @@ private struct PreferencesView: View {
 
                 Section(L10n.appLanguage) {
                     AppLanguagePicker(language: $appLanguage)
+                }
+
+                Section(L10n.appearance) {
+                    ThemeColorPicker(colorTheme: $colorTheme)
                 }
 
                 Section(L10n.trainingPrompts) {

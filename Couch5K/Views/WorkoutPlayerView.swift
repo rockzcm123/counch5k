@@ -31,6 +31,7 @@ struct WorkoutPlayerView: View {
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @AppStorage("voicePromptsEnabled") private var voicePromptsEnabled = true
     @AppStorage("unitSystem") private var unitSystem = "metric"
+    @AppStorage(AppTheme.storageKey) private var colorTheme = AppTheme.pink.rawValue
     @ScaledMetric(relativeTo: .largeTitle) private var timerFontSize = 72
 
     @StateObject private var engine: WorkoutEngine
@@ -79,6 +80,10 @@ struct WorkoutPlayerView: View {
             _engine = StateObject(wrappedValue: WorkoutEngine(session: session))
             _locationService = StateObject(wrappedValue: WorkoutLocationService())
         }
+    }
+
+    private var themeColor: Color {
+        AppTheme(rawValue: colorTheme)?.color ?? .brandPink
     }
 
     var body: some View {
@@ -318,7 +323,7 @@ struct WorkoutPlayerView: View {
     private func metric(title: String, value: String, icon: String) -> some View {
         HStack(spacing: 8) {
             Image(systemName: icon)
-                .foregroundStyle(Color.brandPink)
+                .foregroundStyle(themeColor)
             VStack(alignment: .leading, spacing: 2) {
                 Text(title)
                     .font(.caption)
@@ -376,7 +381,7 @@ struct WorkoutPlayerView: View {
                 }
                 .buttonStyle(.bordered)
                 .buttonBorderShape(.circle)
-                .tint(.brandPink)
+                .tint(themeColor)
                 .disabled(engine.state == .completed)
                 .accessibilityLabel(L10n.encourageMe)
             }
@@ -483,7 +488,7 @@ struct WorkoutPlayerView: View {
                 .font(.subheadline.weight(.medium))
         } icon: {
             Image(systemName: "heart.fill")
-                .foregroundStyle(Color.brandPink)
+                .foregroundStyle(themeColor)
         }
         .padding(.horizontal, 16)
         .padding(.vertical, 12)
@@ -557,7 +562,7 @@ struct WorkoutPlayerView: View {
 
     private func color(for kind: SegmentKind?) -> Color {
         switch kind {
-        case .run: .brandPink
+        case .run: themeColor
         case .warmup, .walk: .blue
         case .cooldown: .mint
         case nil: .green

@@ -13,12 +13,17 @@ struct OnboardingView: View {
     @AppStorage("remindersEnabled") private var remindersEnabled = true
     @AppStorage("unitSystem") private var unitSystem = "metric"
     @AppStorage("reminderWeekdays") private var storedWeekdays = "2,4,7"
+    @AppStorage(AppTheme.storageKey) private var colorTheme = AppTheme.pink.rawValue
 
     @State private var page = 0
     @State private var selectedWeekdays: Set<Int> = [2, 4, 7]
 
     let onComplete: () -> Void
     private let reminderScheduler = WorkoutReminderScheduler()
+
+    private var themeColor: Color {
+        AppTheme(rawValue: colorTheme)?.color ?? .brandPink
+    }
 
     private var pages: [IntroPage] {
         [
@@ -43,7 +48,7 @@ struct OnboardingView: View {
     var body: some View {
         ZStack {
             LinearGradient(
-                colors: [Color.brandPink.opacity(0.16), Color(.systemBackground)],
+                colors: [themeColor.opacity(0.16), Color(.systemBackground)],
                 startPoint: .topLeading,
                 endPoint: .center
             )
@@ -92,7 +97,7 @@ struct OnboardingView: View {
 
             Image(systemName: intro.icon)
                 .font(.system(size: 80))
-                .foregroundStyle(Color.brandPink)
+                .foregroundStyle(themeColor)
                 .symbolRenderingMode(.hierarchical)
 
             Text(intro.title)
@@ -162,7 +167,7 @@ struct OnboardingView: View {
                                         .frame(height: 40)
                                         .background(
                                             selectedWeekdays.contains(option.id)
-                                                ? Color.brandPink
+                                                ? themeColor
                                                 : Color(.secondarySystemBackground)
                                         )
                                         .foregroundStyle(

@@ -10,10 +10,12 @@ extension Color {
 
 @main
 struct Couch5KApp: App {
+    @AppStorage(AppTheme.storageKey) private var colorTheme = AppTheme.pink.rawValue
+
     var body: some Scene {
         WindowGroup {
             RootView()
-                .tint(.brandPink)
+                .tint(AppTheme(rawValue: colorTheme)?.color ?? .brandPink)
         }
         .modelContainer(for: [WorkoutRecord.self, CustomWorkout.self])
     }

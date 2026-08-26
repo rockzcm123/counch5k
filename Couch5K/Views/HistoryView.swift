@@ -8,6 +8,7 @@ struct HistoryView: View {
 
     @Environment(\.modelContext) private var modelContext
     @AppStorage("unitSystem") private var unitSystem = "metric"
+    @AppStorage(AppTheme.storageKey) private var colorTheme = AppTheme.pink.rawValue
     @State private var trendMetric: TrendMetric = .distance
     @State private var displayedMonth = Calendar.current.dateInterval(
         of: .month,
@@ -17,6 +18,10 @@ struct HistoryView: View {
     @State private var visibleRecordCount = HistoryView.pageSize
 
     private static let pageSize = 20
+
+    private var themeColor: Color {
+        AppTheme(rawValue: colorTheme)?.color ?? .brandPink
+    }
 
     var body: some View {
         NavigationStack {
@@ -198,15 +203,15 @@ struct HistoryView: View {
         } label: {
             ZStack {
                 Circle()
-                    .fill(hasWorkout ? Color.brandPink : Color.secondary.opacity(0.08))
+                    .fill(hasWorkout ? themeColor : Color.secondary.opacity(0.08))
 
                 if isSelected {
                     Circle()
-                        .stroke(Color.brandPink, lineWidth: 2)
+                        .stroke(themeColor, lineWidth: 2)
                         .padding(-3)
                 } else if isToday && !hasWorkout {
                     Circle()
-                        .stroke(Color.brandPink, lineWidth: 1.5)
+                        .stroke(themeColor, lineWidth: 1.5)
                 }
 
                 Text("\(Calendar.current.component(.day, from: date))")
@@ -251,7 +256,7 @@ struct HistoryView: View {
 
                     Text("\(unlockedBadgeCount) / \(badges.count)")
                         .font(.subheadline.bold())
-                        .foregroundStyle(Color.brandPink)
+                        .foregroundStyle(themeColor)
                 }
 
                 ScrollView(.horizontal, showsIndicators: false) {
@@ -278,7 +283,7 @@ struct HistoryView: View {
                     .foregroundStyle(unlocked ? Color.white : Color.secondary)
                     .frame(width: 48, height: 48)
                     .background(
-                        unlocked ? Color.brandPink : Color.secondary.opacity(0.12),
+                        unlocked ? themeColor : Color.secondary.opacity(0.12),
                         in: Circle()
                     )
 
@@ -286,7 +291,7 @@ struct HistoryView: View {
 
                 if unlocked {
                     Image(systemName: "checkmark.seal.fill")
-                        .foregroundStyle(Color.brandPink)
+                        .foregroundStyle(themeColor)
                 }
             }
 
@@ -304,10 +309,10 @@ struct HistoryView: View {
             if unlocked {
                 Text(L10n.earned)
                     .font(.caption.bold())
-                    .foregroundStyle(Color.brandPink)
+                    .foregroundStyle(themeColor)
             } else {
                 ProgressView(value: progress)
-                    .tint(.brandPink)
+                    .tint(themeColor)
                 Text(badgeProgressText(for: badge))
                     .font(.caption2)
                     .foregroundStyle(.secondary)
@@ -317,13 +322,13 @@ struct HistoryView: View {
         .frame(width: 180, height: 212, alignment: .topLeading)
         .background(
             unlocked
-                ? Color.brandPink.opacity(0.09)
+                ? themeColor.opacity(0.09)
                 : Color(.tertiarySystemGroupedBackground),
             in: RoundedRectangle(cornerRadius: 18)
         )
         .overlay {
             RoundedRectangle(cornerRadius: 18)
-                .stroke(unlocked ? Color.brandPink.opacity(0.22) : Color.clear)
+                .stroke(unlocked ? themeColor.opacity(0.22) : Color.clear)
         }
         .accessibilityElement(children: .combine)
     }
@@ -393,8 +398,8 @@ struct HistoryView: View {
                         .foregroundStyle(
                             LinearGradient(
                                 colors: [
-                                    Color.brandPink.opacity(0.34),
-                                    Color.brandPink.opacity(0.06)
+                                    themeColor.opacity(0.34),
+                                    themeColor.opacity(0.06)
                                 ],
                                 startPoint: .top,
                                 endPoint: .bottom
@@ -406,7 +411,7 @@ struct HistoryView: View {
                             x: .value(L10n.week, activity.startDate),
                             y: .value(trendMetric.axisTitle, trendValue(for: activity))
                         )
-                        .foregroundStyle(Color.brandPink)
+                        .foregroundStyle(themeColor)
                         .lineStyle(StrokeStyle(lineWidth: 3, lineCap: .round, lineJoin: .round))
 
                         PointMark(
@@ -417,7 +422,7 @@ struct HistoryView: View {
                         .symbolSize(62)
                         .annotation(position: .overlay) {
                             Circle()
-                                .stroke(Color.brandPink, lineWidth: 2.5)
+                                .stroke(themeColor, lineWidth: 2.5)
                                 .frame(width: 10, height: 10)
                         }
                     }
@@ -468,13 +473,13 @@ struct HistoryView: View {
                 .padding(.vertical, 9)
                 .foregroundStyle(trendMetric == metric ? Color.white : Color.primary)
                 .background(
-                    trendMetric == metric ? Color.brandPink : Color.clear,
+                    trendMetric == metric ? themeColor : Color.clear,
                     in: Capsule()
                 )
                 .overlay {
                     Capsule()
                         .stroke(
-                            trendMetric == metric ? Color.brandPink : Color.secondary.opacity(0.35),
+                            trendMetric == metric ? themeColor : Color.secondary.opacity(0.35),
                             lineWidth: 1
                         )
                 }
@@ -521,7 +526,7 @@ struct HistoryView: View {
         VStack(alignment: .leading, spacing: 8) {
             Image(systemName: icon)
                 .font(.caption.weight(.bold))
-                .foregroundStyle(Color.brandPink)
+                .foregroundStyle(themeColor)
 
             Text(value)
                 .font(.title3.bold())
@@ -889,6 +894,11 @@ private struct WorkoutRecordDetailView: View {
     @Bindable var record: WorkoutRecord
     @Environment(\.modelContext) private var modelContext
     @AppStorage("unitSystem") private var unitSystem = "metric"
+    @AppStorage(AppTheme.storageKey) private var colorTheme = AppTheme.pink.rawValue
+
+    private var themeColor: Color {
+        AppTheme(rawValue: colorTheme)?.color ?? .brandPink
+    }
 
     var body: some View {
         Form {
@@ -919,7 +929,7 @@ private struct WorkoutRecordDetailView: View {
                                 )
                             }
                         )
-                        .stroke(Color.brandPink, lineWidth: 5)
+                        .stroke(themeColor, lineWidth: 5)
                     }
                     .mapStyle(.standard(elevation: .realistic))
                     .frame(height: 240)
