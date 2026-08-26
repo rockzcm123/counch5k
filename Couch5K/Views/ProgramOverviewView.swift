@@ -115,6 +115,9 @@ struct ProgramOverviewView: View {
             .sheet(isPresented: $isShowingSettings) {
                 PreferencesView()
             }
+            .task {
+                try? await healthService.requestAuthorization()
+            }
         }
     }
 

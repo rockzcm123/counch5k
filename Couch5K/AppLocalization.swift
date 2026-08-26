@@ -294,6 +294,12 @@ enum L10n {
     static var healthUnavailable: String {
         text("此设备不支持健康数据。训练仍会保存在应用内。", "Health data isn't available on this device. Your workout will still be saved in the app.")
     }
+    static var healthAuthorizationDenied: String {
+        text(
+            "未获得健康 App 写入权限，训练仍会保存在应用内。可在「设置 > 健康 > 数据访问与设备 > Couch 5K」中开启。",
+            "Permission to write to Health hasn't been granted. Your workout is still saved in the app. You can enable it in Settings > Health > Data Access & Devices > Couch 5K."
+        )
+    }
     static var locationPermissionDenied: String {
         text("定位权限未开启，本次训练不会记录距离和路线。", "Location access is disabled. Distance and route won't be recorded for this workout.")
     }

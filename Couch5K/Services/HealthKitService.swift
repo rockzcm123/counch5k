@@ -4,10 +4,12 @@ import HealthKit
 
 enum HealthKitServiceError: LocalizedError {
     case unavailable
+    case authorizationDenied
 
     var errorDescription: String? {
         switch self {
         case .unavailable: L10n.healthUnavailable
+        case .authorizationDenied: L10n.healthAuthorizationDenied
         }
     }
 }
@@ -33,6 +35,9 @@ actor HealthKitService {
     func saveWorkout(_ result: WorkoutResult) async throws {
         guard HKHealthStore.isHealthDataAvailable() else {
             throw HealthKitServiceError.unavailable
+        }
+        guard healthStore.authorizationStatus(for: HKObjectType.workoutType()) != .sharingDenied else {
+            throw HealthKitServiceError.authorizationDenied
         }
 
         let configuration = HKWorkoutConfiguration()
