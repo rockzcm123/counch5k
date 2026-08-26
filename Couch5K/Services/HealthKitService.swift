@@ -23,8 +23,9 @@ actor HealthKitService {
         let workoutType = HKObjectType.workoutType()
         let routeType = HKSeriesType.workoutRoute()
         let distanceType = HKQuantityType(.distanceWalkingRunning)
+        let energyType = HKQuantityType(.activeEnergyBurned)
         try await healthStore.requestAuthorization(
-            toShare: [workoutType, routeType, distanceType],
+            toShare: [workoutType, routeType, distanceType, energyType],
             read: [workoutType, distanceType]
         )
     }
@@ -52,18 +53,34 @@ actor HealthKitService {
             to: builder
         )
 
+        var samples: [HKQuantitySample] = []
+
         if result.distanceMeters > 0 {
             let distanceType = HKQuantityType(.distanceWalkingRunning)
-            let sample = HKQuantitySample(
-                type: distanceType,
-                quantity: HKQuantity(
-                    unit: .meter(),
-                    doubleValue: result.distanceMeters
-                ),
-                start: result.startedAt,
-                end: result.completedAt
+            samples.append(
+                HKQuantitySample(
+                    type: distanceType,
+                    quantity: HKQuantity(unit: .meter(), doubleValue: result.distanceMeters),
+                    start: result.startedAt,
+                    end: result.completedAt
+                )
             )
-            try await addSamples([sample], to: builder)
+        }
+
+        if let energyKilocalories = estimatedActiveEnergy(for: result), energyKilocalories > 0 {
+            let energyType = HKQuantityType(.activeEnergyBurned)
+            samples.append(
+                HKQuantitySample(
+                    type: energyType,
+                    quantity: HKQuantity(unit: .kilocalorie(), doubleValue: energyKilocalories),
+                    start: result.startedAt,
+                    end: result.completedAt
+                )
+            )
+        }
+
+        if !samples.isEmpty {
+            try await addSamples(samples, to: builder)
         }
 
         try await endCollection(builder, at: result.completedAt)
@@ -73,6 +90,19 @@ actor HealthKitService {
         let routeBuilder = HKWorkoutRouteBuilder(healthStore: healthStore, device: .local())
         try await insert(result.route.map(\.location), into: routeBuilder)
         try await finish(routeBuilder, workout: workout)
+    }
+
+    /// Estimates calories burned using a fixed run-walk MET value and the
+    /// weight from the About Me profile (falls back to 70kg when unset),
+    /// since this app has no heart-rate sensor to measure it directly.
+    private func estimatedActiveEnergy(for result: WorkoutResult) -> Double? {
+        let hours = result.completedAt.timeIntervalSince(result.startedAt) / 3_600
+        guard hours > 0 else { return nil }
+
+        let storedWeightKg = UserDefaults.standard.double(forKey: "profileWeightKg")
+        let weightKg = storedWeightKg > 0 ? storedWeightKg : 70
+        let runWalkMET = 7.0
+        return runWalkMET * weightKg * hours
     }
 
     private func beginCollection(
