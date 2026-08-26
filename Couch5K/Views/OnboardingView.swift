@@ -14,9 +14,20 @@ struct OnboardingView: View {
     @AppStorage("unitSystem") private var unitSystem = "metric"
     @AppStorage("reminderWeekdays") private var storedWeekdays = "2,4,7"
     @AppStorage(AppTheme.storageKey) private var colorTheme = AppTheme.pink.rawValue
+    @AppStorage("profileName") private var storedProfileName = ""
+    @AppStorage("profilePhotoData") private var storedProfilePhotoData = Data()
+    @AppStorage("profileHeightCm") private var storedProfileHeightCm = 0.0
+    @AppStorage("profileWeightKg") private var storedProfileWeightKg = 0.0
+    @AppStorage("profileBirthdate") private var storedProfileBirthdate = 0.0
 
     @State private var page = 0
     @State private var selectedWeekdays: Set<Int> = [2, 4, 7]
+    @State private var profileName = ""
+    @State private var profilePhotoData = Data()
+    @State private var hasBirthdate = false
+    @State private var birthdate = Calendar.current.date(byAdding: .year, value: -25, to: .now) ?? .now
+    @State private var heightText = ""
+    @State private var weightText = ""
 
     let onComplete: () -> Void
     private let reminderScheduler = WorkoutReminderScheduler()
@@ -24,6 +35,9 @@ struct OnboardingView: View {
     private var themeColor: Color {
         AppTheme(rawValue: colorTheme)?.color ?? .brandPink
     }
+
+    /// Intro pages, then the profile step, then preferences+start.
+    private var totalPageCount: Int { pages.count + 2 }
 
     private var pages: [IntroPage] {
         [
@@ -61,13 +75,16 @@ struct OnboardingView: View {
                             .tag(index)
                     }
 
-                    preferencesPage
+                    profileSetupPage
                         .tag(pages.count)
+
+                    preferencesPage
+                        .tag(pages.count + 1)
                 }
                 .tabViewStyle(.page(indexDisplayMode: .always))
 
                 Button(action: advance) {
-                    Text(page == pages.count ? L10n.startNineWeekPlan : L10n.continueAction)
+                    Text(page == totalPageCount - 1 ? L10n.startNineWeekPlan : L10n.continueAction)
                         .font(.headline)
                         .frame(maxWidth: .infinity)
                         .padding(.vertical, 16)
@@ -118,6 +135,34 @@ struct OnboardingView: View {
             Spacer()
         }
         .padding(.top, 30)
+    }
+
+    private var profileSetupPage: some View {
+        VStack(spacing: 0) {
+            VStack(alignment: .leading, spacing: 8) {
+                Text(L10n.welcomeProfileTitle)
+                    .font(.largeTitle.bold())
+                Text(L10n.welcomeProfileMessage)
+                    .foregroundStyle(.secondary)
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .padding(.horizontal, 24)
+            .padding(.top, 30)
+            .padding(.bottom, 8)
+
+            Form {
+                ProfileFieldsForm(
+                    name: $profileName,
+                    photoData: $profilePhotoData,
+                    hasBirthdate: $hasBirthdate,
+                    birthdate: $birthdate,
+                    heightText: $heightText,
+                    weightText: $weightText,
+                    isMetric: unitSystem != "imperial"
+                )
+            }
+            .scrollContentBackground(.hidden)
+        }
     }
 
     private var preferencesPage: some View {
@@ -234,11 +279,12 @@ struct OnboardingView: View {
     }
 
     private func advance() {
-        if page < pages.count {
+        if page < totalPageCount - 1 {
             withAnimation {
                 page += 1
             }
         } else {
+            persistProfile()
             storedWeekdays = selectedWeekdays.sorted().map(String.init).joined(separator: ",")
             Task {
                 do {
@@ -253,6 +299,25 @@ struct OnboardingView: View {
                 }
                 onComplete()
             }
+        }
+    }
+
+    private func persistProfile() {
+        storedProfileName = profileName.trimmingCharacters(in: .whitespacesAndNewlines)
+        storedProfilePhotoData = profilePhotoData
+        storedProfileBirthdate = hasBirthdate ? birthdate.timeIntervalSince1970 : 0
+
+        let isMetric = unitSystem != "imperial"
+        if let value = Double(heightText), value > 0 {
+            storedProfileHeightCm = isMetric ? value : value * 2.54
+        } else {
+            storedProfileHeightCm = 0
+        }
+
+        if let value = Double(weightText), value > 0 {
+            storedProfileWeightKg = isMetric ? value : value / 2.20462
+        } else {
+            storedProfileWeightKg = 0
         }
     }
 

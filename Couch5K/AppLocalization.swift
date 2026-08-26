@@ -205,6 +205,25 @@ enum L10n {
     static var inches: String { text("英寸", "in") }
     static var kilograms: String { text("公斤", "kg") }
     static var pounds: String { text("磅", "lb") }
+    static var choosePhoto: String { text("选择照片", "Choose Photo") }
+    static var changePhoto: String { text("更换照片", "Change Photo") }
+    static var removePhoto: String { text("移除照片", "Remove photo") }
+
+    static var greetingMorning: String { text("早上好", "Good morning") }
+    static var greetingAfternoon: String { text("下午好", "Good afternoon") }
+    static var greetingEvening: String { text("晚上好", "Good evening") }
+
+    static func personalGreeting(_ name: String) -> String {
+        text("你好，\(name)", "Hi, \(name)")
+    }
+
+    static var welcomeProfileTitle: String { text("认识一下你", "Tell Us About You") }
+    static var welcomeProfileMessage: String {
+        text(
+            "这些信息帮助我们个性化你的训练体验，之后也可以在设置中修改。",
+            "This helps personalize your experience — you can always change it later in Settings."
+        )
+    }
 
     static func ageYears(_ years: Int) -> String {
         text("\(years) 岁", years == 1 ? "1 year old" : "\(years) years old")

@@ -1,5 +1,6 @@
 import SwiftData
 import SwiftUI
+import UIKit
 
 struct ProgramOverviewView: View {
     let plan: TrainingPlan
@@ -14,11 +15,21 @@ struct ProgramOverviewView: View {
     @State private var selectedWorkout: SelectedWorkout?
     @State private var healthMessage: String?
     @AppStorage(AppTheme.storageKey) private var colorTheme = AppTheme.pink.rawValue
+    @AppStorage("profileName") private var profileName = ""
+    @AppStorage("profilePhotoData") private var profilePhotoData = Data()
 
     private let healthService = HealthKitService()
 
     private var themeColor: Color {
         AppTheme(rawValue: colorTheme)?.color ?? .brandPink
+    }
+
+    private var greeting: String {
+        switch Calendar.current.component(.hour, from: .now) {
+        case 5..<12: L10n.greetingMorning
+        case 12..<18: L10n.greetingAfternoon
+        default: L10n.greetingEvening
+        }
     }
 
     private struct SelectedWorkout: Identifiable {
@@ -88,7 +99,8 @@ struct ProgramOverviewView: View {
     private var planView: some View {
         NavigationStack {
             ScrollView {
-                LazyVStack(spacing: 16) {
+                LazyVStack(spacing: 20) {
+                    profileHeaderBar
                     dailyMotivationCard
                     heroCard
                     progressCard
@@ -100,7 +112,6 @@ struct ProgramOverviewView: View {
                 .padding()
             }
             .background(Color(.systemGroupedBackground))
-            .navigationTitle(plan.title)
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
@@ -119,6 +130,48 @@ struct ProgramOverviewView: View {
                 try? await healthService.requestAuthorization()
             }
         }
+    }
+
+    private var profileHeaderBar: some View {
+        HStack(spacing: 14) {
+            profileAvatar
+
+            VStack(alignment: .leading, spacing: 2) {
+                Text(greeting)
+                    .font(.caption.weight(.medium))
+                    .foregroundStyle(.secondary)
+
+                Text(
+                    profileName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+                        ? plan.title
+                        : L10n.personalGreeting(profileName)
+                )
+                .font(.title3.bold())
+                .lineLimit(1)
+            }
+
+            Spacer(minLength: 8)
+        }
+        .accessibilityElement(children: .combine)
+    }
+
+    private var profileAvatar: some View {
+        Group {
+            if let uiImage = UIImage(data: profilePhotoData) {
+                Image(uiImage: uiImage)
+                    .resizable()
+                    .scaledToFill()
+            } else {
+                Image(systemName: "person.fill")
+                    .font(.system(size: 19))
+                    .foregroundStyle(themeColor)
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    .background(themeColor.opacity(0.14))
+            }
+        }
+        .frame(width: 46, height: 46)
+        .clipShape(Circle())
+        .accessibilityHidden(true)
     }
 
     private var dailyMotivationCard: some View {
@@ -165,6 +218,7 @@ struct ProgramOverviewView: View {
             RoundedRectangle(cornerRadius: 20)
                 .stroke(themeColor.opacity(0.13))
         }
+        .shadow(color: .black.opacity(0.05), radius: 10, y: 4)
         .accessibilityElement(children: .combine)
     }
 
@@ -237,8 +291,9 @@ struct ProgramOverviewView: View {
                 startPoint: .topLeading,
                 endPoint: .bottomTrailing
             ),
-            in: RoundedRectangle(cornerRadius: 22)
+            in: RoundedRectangle(cornerRadius: 20)
         )
+        .shadow(color: .black.opacity(0.05), radius: 10, y: 4)
     }
 
     private var progressCard: some View {
@@ -260,7 +315,7 @@ struct ProgramOverviewView: View {
                 .foregroundStyle(.secondary)
         }
         .padding(18)
-        .background(Color(.secondarySystemGroupedBackground), in: RoundedRectangle(cornerRadius: 18))
+        .cardBackground()
     }
 
     private func weekCard(_ week: TrainingWeek) -> some View {
@@ -330,7 +385,7 @@ struct ProgramOverviewView: View {
                 .padding(.horizontal, 16)
             }
         }
-        .background(Color(.secondarySystemGroupedBackground), in: RoundedRectangle(cornerRadius: 20))
+        .cardBackground()
     }
 
     private func sessionRow(_ session: TrainingSession, weekNumber: Int) -> some View {
@@ -624,4 +679,23 @@ private struct PreferencesView: View {
 #Preview {
     ProgramOverviewView(plan: .standard)
         .modelContainer(for: [WorkoutRecord.self, CustomWorkout.self], inMemory: true)
+}
+
+private struct CardBackground: ViewModifier {
+    var cornerRadius: CGFloat = 20
+
+    func body(content: Content) -> some View {
+        content
+            .background(
+                Color(.secondarySystemGroupedBackground),
+                in: RoundedRectangle(cornerRadius: cornerRadius)
+            )
+            .shadow(color: .black.opacity(0.05), radius: 10, y: 4)
+    }
+}
+
+private extension View {
+    func cardBackground(cornerRadius: CGFloat = 20) -> some View {
+        modifier(CardBackground(cornerRadius: cornerRadius))
+    }
 }
