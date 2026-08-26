@@ -128,12 +128,15 @@ struct ProgramOverviewView: View {
                     Text(L10n.dailyHabitTip)
                         .font(.caption.weight(.semibold))
                         .foregroundStyle(.secondary)
+                        .lineLimit(1)
 
-                    Spacer()
+                    Spacer(minLength: 8)
 
                     Text(prompt.principle)
                         .font(.caption2.bold())
                         .foregroundStyle(Color.brandPink)
+                        .lineLimit(1)
+                        .fixedSize(horizontal: true, vertical: false)
                         .padding(.horizontal, 9)
                         .padding(.vertical, 5)
                         .background(Color.brandPink.opacity(0.1), in: Capsule())
@@ -186,8 +189,11 @@ struct ProgramOverviewView: View {
 
                 HStack {
                     Label(workout.session.totalDuration.workoutDurationText, systemImage: "clock")
-                    Spacer()
+                        .lineLimit(1)
+                    Spacer(minLength: 8)
                     Label(isResuming ? L10n.resumeProgress : L10n.easyPace, systemImage: "gauge.with.dots.needle.33percent")
+                        .lineLimit(1)
+                        .layoutPriority(1)
                 }
                 .font(.footnote.weight(.medium))
 
@@ -470,14 +476,6 @@ private struct PreferencesView: View {
                                         Image(systemName: "checkmark")
                                             .fontWeight(.semibold)
                                     }
-
-                                    Section(L10n.reminderTime) {
-                                        DatePicker(
-                                            L10n.time,
-                                            selection: $reminderTime,
-                                            displayedComponents: .hourAndMinute
-                                        )
-                                    }
                                 }
                             }
                         }
@@ -485,6 +483,14 @@ private struct PreferencesView: View {
                         Text(L10n.trainingDays)
                     } footer: {
                         Text(L10n.recoveryDayAdvice)
+                    }
+
+                    Section(L10n.reminderTime) {
+                        DatePicker(
+                            L10n.time,
+                            selection: $reminderTime,
+                            displayedComponents: .hourAndMinute
+                        )
                     }
                 }
 

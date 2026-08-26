@@ -293,6 +293,8 @@ struct HistoryView: View {
             VStack(alignment: .leading, spacing: 4) {
                 Text(badge.title)
                     .font(.headline)
+                    .lineLimit(2)
+                    .minimumScaleFactor(0.85)
                 Text(badge.detail)
                     .font(.caption)
                     .foregroundStyle(.secondary)
@@ -312,7 +314,7 @@ struct HistoryView: View {
             }
         }
         .padding(16)
-        .frame(width: 180, height: 190, alignment: .topLeading)
+        .frame(width: 180, height: 212, alignment: .topLeading)
         .background(
             unlocked
                 ? Color.brandPink.opacity(0.09)
