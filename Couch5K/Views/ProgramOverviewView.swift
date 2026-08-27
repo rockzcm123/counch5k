@@ -176,8 +176,10 @@ struct ProgramOverviewView: View {
                     Text("\(workout.session.totalDuration.workoutDurationText) · \(workout.session.summary)")
                         .font(.footnote)
                         .foregroundStyle(.white.opacity(0.85))
-                        .lineLimit(2)
+                        .fixedSize(horizontal: false, vertical: true)
+                        .frame(maxWidth: .infinity, alignment: .leading)
                 }
+                .frame(maxWidth: .infinity, alignment: .leading)
 
                 Button {
                     selectedWorkout = SelectedWorkout(
@@ -525,7 +527,7 @@ struct ProgramOverviewView: View {
     private func sessionRow(_ session: TrainingSession, weekNumber: Int) -> some View {
         let isComplete = completedKeys.contains("\(weekNumber)-\(session.day)")
 
-        return HStack(alignment: .center, spacing: 12) {
+        return HStack(alignment: .top, spacing: 12) {
             Image(systemName: isComplete ? "checkmark" : "figure.run")
                 .font(.subheadline.bold())
                 .foregroundStyle(.white)
@@ -533,24 +535,30 @@ struct ProgramOverviewView: View {
                 .background(isComplete ? Color.green : Color.secondary.opacity(0.5), in: Circle())
 
             VStack(alignment: .leading, spacing: 4) {
-                Text(session.title)
-                    .font(.subheadline.weight(.semibold))
+                HStack(spacing: 8) {
+                    Text(session.title)
+                        .font(.subheadline.weight(.semibold))
+
+                    Spacer(minLength: 8)
+
+                    Text(session.totalDuration.workoutDurationText)
+                        .font(.caption.weight(.medium))
+                        .foregroundStyle(.secondary)
+
+                    Image(systemName: isComplete ? "arrow.clockwise" : "play.fill")
+                        .font(.caption.bold())
+                        .foregroundStyle(.white)
+                        .frame(width: 26, height: 26)
+                        .background(themeColor, in: Circle())
+                }
+
                 Text(session.summary)
                     .font(.footnote)
                     .foregroundStyle(.secondary)
                     .fixedSize(horizontal: false, vertical: true)
+                    .frame(maxWidth: .infinity, alignment: .leading)
             }
             .frame(maxWidth: .infinity, alignment: .leading)
-
-            Text(session.totalDuration.workoutDurationText)
-                .font(.caption.weight(.medium))
-                .foregroundStyle(.secondary)
-
-            Image(systemName: isComplete ? "arrow.clockwise" : "play.fill")
-                .font(.footnote.bold())
-                .foregroundStyle(.white)
-                .frame(width: 30, height: 30)
-                .background(themeColor, in: Circle())
         }
         .padding(.vertical, 13)
     }
