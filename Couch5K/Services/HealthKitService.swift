@@ -26,6 +26,20 @@ struct ReconciledWorkout: Sendable {
     let distanceMeters: Double
 }
 
+/// A completed Couch5K plan session as read back from HealthKit, used by
+/// the Watch app (which has no local history store of its own) to show
+/// history and compute plan progress.
+struct WorkoutHistoryEntry: Identifiable, Sendable {
+    let id: String
+    let weekNumber: Int
+    let sessionDay: Int
+    let startedAt: Date
+    let completedAt: Date
+    let distanceMeters: Double
+
+    var completionKey: String { "\(weekNumber)-\(sessionDay)" }
+}
+
 actor HealthKitService {
     private let healthStore = HKHealthStore()
 
@@ -96,23 +110,28 @@ actor HealthKitService {
 
     /// Finds every completed Couch5K plan session recorded in HealthKit,
     /// regardless of whether it was completed in the iPhone app or on Apple
-    /// Watch, returning `PlannedWorkout.completionKey`-style keys
-    /// ("weekNumber-sessionDay"). Used to compute "what's next" without
-    /// needing direct access to the other device's local data.
-    func fetchCompletedPlanSessionKeys() async throws -> Set<String> {
+    /// Watch, most recent first. This is the shared source of truth both
+    /// devices read to know "what's already done" — the iPhone app has its
+    /// own richer local history (notes, GPS route) as the primary record,
+    /// but the Watch has no local store of its own, so it reads this
+    /// directly to show history and compute what's next.
+    func fetchWorkoutHistory(limit: Int = 50) async throws -> [WorkoutHistoryEntry] {
         guard HKHealthStore.isHealthDataAvailable() else {
             throw HealthKitServiceError.unavailable
         }
 
         let workoutType = HKObjectType.workoutType()
         let predicate = HKQuery.predicateForWorkouts(with: .running)
+        let sortByMostRecent = [
+            NSSortDescriptor(key: HKSampleSortIdentifierEndDate, ascending: false)
+        ]
 
         let workouts: [HKWorkout] = try await withCheckedThrowingContinuation { continuation in
             let query = HKSampleQuery(
                 sampleType: workoutType,
                 predicate: predicate,
-                limit: HKObjectQueryNoLimit,
-                sortDescriptors: nil
+                limit: limit,
+                sortDescriptors: sortByMostRecent
             ) { _, samples, error in
                 if let error {
                     continuation.resume(throwing: error)
@@ -123,13 +142,20 @@ actor HealthKitService {
             healthStore.execute(query)
         }
 
-        return Set(workouts.compactMap { workout -> String? in
+        return workouts.compactMap { workout -> WorkoutHistoryEntry? in
             guard let weekNumber = workout.metadata?["Couch5KWeekNumber"] as? Int,
                   let sessionDay = workout.metadata?["Couch5KSessionDay"] as? Int else {
                 return nil
             }
-            return "\(weekNumber)-\(sessionDay)"
-        })
+            return WorkoutHistoryEntry(
+                id: workout.uuid.uuidString,
+                weekNumber: weekNumber,
+                sessionDay: sessionDay,
+                startedAt: workout.startDate,
+                completedAt: workout.endDate,
+                distanceMeters: workout.totalDistance?.doubleValue(for: .meter()) ?? 0
+            )
+        }
     }
 
     // WorkoutResult/RoutePoint (WorkoutLocationService.swift) are iOS-only —

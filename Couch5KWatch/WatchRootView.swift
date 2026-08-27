@@ -3,19 +3,24 @@ import SwiftUI
 struct WatchRootView: View {
     let plan: TrainingPlan
 
-    @State private var completedKeys: Set<String> = []
+    @State private var history: [WorkoutHistoryEntry] = []
     @State private var isLoadingProgress = true
 
     private let healthService = HealthKitService()
+
+    private var completedKeys: Set<String> {
+        Set(history.map(\.completionKey))
+    }
 
     var body: some View {
         TabView {
             nextWorkoutPage
             programPage
+            historyPage
         }
         .task {
             try? await healthService.requestAuthorization()
-            completedKeys = (try? await healthService.fetchCompletedPlanSessionKeys()) ?? []
+            history = (try? await healthService.fetchWorkoutHistory()) ?? []
             isLoadingProgress = false
         }
     }
@@ -94,6 +99,38 @@ struct WatchRootView: View {
                 }
             }
             .navigationTitle(L10n.planTitle)
+        }
+    }
+
+    private var historyPage: some View {
+        NavigationStack {
+            Group {
+                if isLoadingProgress {
+                    ProgressView()
+                } else if history.isEmpty {
+                    Text(L10n.noHistory)
+                        .font(.headline)
+                        .multilineTextAlignment(.center)
+                        .padding()
+                } else {
+                    List(history) { entry in
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text(L10n.plannedWorkoutTitle(week: entry.weekNumber, day: entry.sessionDay))
+                                .font(.headline)
+
+                            HStack(spacing: 6) {
+                                Text(entry.completedAt, format: .dateTime.month(.abbreviated).day())
+                                if entry.distanceMeters > 0 {
+                                    Text(String(format: "· %.2f km", entry.distanceMeters / 1_000))
+                                }
+                            }
+                            .font(.caption2)
+                            .foregroundStyle(.secondary)
+                        }
+                    }
+                }
+            }
+            .navigationTitle(L10n.historyTab)
         }
     }
 }
