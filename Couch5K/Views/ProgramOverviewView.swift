@@ -392,7 +392,7 @@ struct ProgramOverviewView: View {
     private var selectedWeekSection: some View {
         let week = plan.weeks.first { $0.number == effectiveSelectedWeek }
 
-        return VStack(spacing: 0) {
+        return VStack(alignment: .leading, spacing: 0) {
             if let week {
                 HStack(spacing: 12) {
                     Image(systemName: weekIsComplete(week) ? "checkmark.seal.fill" : "figure.run")
@@ -409,6 +409,7 @@ struct ProgramOverviewView: View {
                             .foregroundStyle(.secondary)
                     }
                 }
+                .frame(maxWidth: .infinity, alignment: .leading)
                 .padding(16)
 
                 Divider()
@@ -654,9 +655,9 @@ struct ProgramOverviewView: View {
 
 private struct PreferencesView: View {
     @Environment(\.dismiss) private var dismiss
-    @AppStorage(AppLanguage.storageKey) private var appLanguage = AppLanguage.simplifiedChinese.rawValue
+    @AppStorage(AppLanguage.storageKey) private var appLanguage = AppLanguage.english.rawValue
     @AppStorage("voicePromptsEnabled") private var voicePromptsEnabled = true
-    @AppStorage("coachLanguage") private var coachLanguage = AppLanguage.simplifiedChinese.rawValue
+    @AppStorage("coachLanguage") private var coachLanguage = AppLanguage.english.rawValue
     @AppStorage("remindersEnabled") private var remindersEnabled = true
     @AppStorage("unitSystem") private var unitSystem = "metric"
     @AppStorage("reminderWeekdays") private var storedWeekdays = "2,4,7"
@@ -801,7 +802,7 @@ private struct PreferencesView: View {
     }
 
     private func synchronizeCoachLanguage() {
-        let language = AppLanguage(rawValue: appLanguage) ?? .simplifiedChinese
+        let language = AppLanguage(rawValue: appLanguage) ?? .english
         if appLanguage != language.rawValue {
             appLanguage = language.rawValue
         }

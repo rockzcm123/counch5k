@@ -2,8 +2,8 @@ import SwiftUI
 
 struct RootView: View {
     @AppStorage("hasCompletedOnboarding") private var hasCompletedOnboarding = false
-    @AppStorage(AppLanguage.storageKey) private var appLanguage = AppLanguage.simplifiedChinese.rawValue
-    @AppStorage("coachLanguage") private var coachLanguage = AppLanguage.simplifiedChinese.rawValue
+    @AppStorage(AppLanguage.storageKey) private var appLanguage = AppLanguage.english.rawValue
+    @AppStorage("coachLanguage") private var coachLanguage = AppLanguage.english.rawValue
 
     var body: some View {
         Group {
@@ -24,7 +24,7 @@ struct RootView: View {
     }
 
     private var selectedLanguage: AppLanguage {
-        AppLanguage(rawValue: appLanguage) ?? .simplifiedChinese
+        AppLanguage(rawValue: appLanguage) ?? .english
     }
 
     private func synchronizeCoachLanguage() {

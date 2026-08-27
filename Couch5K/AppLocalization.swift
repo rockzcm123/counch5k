@@ -21,9 +21,9 @@ enum AppLanguage: String, CaseIterable, Identifiable {
 
     static var current: AppLanguage {
         guard let value = UserDefaults.standard.string(forKey: storageKey) else {
-            return .simplifiedChinese
+            return .english
         }
-        return AppLanguage(rawValue: value) ?? .simplifiedChinese
+        return AppLanguage(rawValue: value) ?? .english
     }
 
     func text(_ chinese: String, _ english: String) -> String {

@@ -8,8 +8,8 @@ struct OnboardingView: View {
     }
 
     @AppStorage("voicePromptsEnabled") private var voicePromptsEnabled = true
-    @AppStorage(AppLanguage.storageKey) private var appLanguage = AppLanguage.simplifiedChinese.rawValue
-    @AppStorage("coachLanguage") private var coachLanguage = AppLanguage.simplifiedChinese.rawValue
+    @AppStorage(AppLanguage.storageKey) private var appLanguage = AppLanguage.english.rawValue
+    @AppStorage("coachLanguage") private var coachLanguage = AppLanguage.english.rawValue
     @AppStorage("remindersEnabled") private var remindersEnabled = true
     @AppStorage("unitSystem") private var unitSystem = "metric"
     @AppStorage("reminderWeekdays") private var storedWeekdays = "2,4,7"
@@ -318,7 +318,7 @@ struct OnboardingView: View {
     }
 
     private func synchronizeCoachLanguage() {
-        let language = AppLanguage(rawValue: appLanguage) ?? .simplifiedChinese
+        let language = AppLanguage(rawValue: appLanguage) ?? .english
         if appLanguage != language.rawValue {
             appLanguage = language.rawValue
         }
