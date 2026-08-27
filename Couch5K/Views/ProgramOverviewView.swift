@@ -514,8 +514,7 @@ struct ProgramOverviewView: View {
                     .foregroundStyle(.secondary)
                     .fixedSize(horizontal: false, vertical: true)
             }
-
-            Spacer(minLength: 8)
+            .frame(maxWidth: .infinity, alignment: .leading)
 
             Text(session.totalDuration.workoutDurationText)
                 .font(.caption.weight(.medium))

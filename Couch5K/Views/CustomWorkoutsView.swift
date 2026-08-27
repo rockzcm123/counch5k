@@ -66,9 +66,9 @@ struct CustomWorkoutsView: View {
                     Text(workout.summary)
                         .font(.subheadline)
                         .foregroundStyle(.secondary)
+                        .fixedSize(horizontal: false, vertical: true)
                 }
-
-                Spacer()
+                .frame(maxWidth: .infinity, alignment: .leading)
 
                 Button {
                     onStart(workout)
