@@ -104,7 +104,7 @@ struct ProgramOverviewView: View {
                 VStack(spacing: 0) {
                     heroSection
 
-                    VStack(spacing: 16) {
+                    VStack(alignment: .leading, spacing: 16) {
                         statsRow
                         dailyMotivationCard
                         weekStrip
@@ -358,8 +358,10 @@ struct ProgramOverviewView: View {
                         weekChip(week)
                     }
                 }
+                .frame(maxWidth: .infinity, alignment: .leading)
             }
         }
+        .frame(maxWidth: .infinity, alignment: .leading)
     }
 
     private func weekChip(_ week: TrainingWeek) -> some View {
@@ -410,7 +412,7 @@ struct ProgramOverviewView: View {
                 Divider()
                     .padding(.leading, 16)
 
-                VStack(spacing: 0) {
+                VStack(alignment: .leading, spacing: 0) {
                     ForEach(week.sessions) { session in
                         Button {
                             selectedWorkout = SelectedWorkout(
@@ -423,8 +425,7 @@ struct ProgramOverviewView: View {
                         .buttonStyle(.plain)
 
                         if session.id != week.sessions.last?.id {
-                            Divider()
-                                .padding(.leading, 54)
+                            sessionTimelineConnector
                         }
                     }
                 }
@@ -446,12 +447,12 @@ struct ProgramOverviewView: View {
     }
 
     private var weekListSection: some View {
-        VStack(spacing: 0) {
+        VStack(alignment: .leading, spacing: 0) {
             ForEach(Array(plan.weeks.enumerated()), id: \.element.id) { index, week in
                 weekRow(week)
 
                 if expandedWeeks.contains(week.number) {
-                    VStack(spacing: 0) {
+                    VStack(alignment: .leading, spacing: 0) {
                         ForEach(week.sessions) { session in
                             Button {
                                 selectedWorkout = SelectedWorkout(
@@ -464,8 +465,7 @@ struct ProgramOverviewView: View {
                             .buttonStyle(.plain)
 
                             if session.id != week.sessions.last?.id {
-                                Divider()
-                                    .padding(.leading, 54)
+                                sessionTimelineConnector
                             }
                         }
                     }
@@ -522,6 +522,25 @@ struct ProgramOverviewView: View {
         }
         .buttonStyle(.plain)
         .padding(16)
+    }
+
+    /// A short dotted, fading connector between session rows, aligned under
+    /// the 34pt status icon badge so consecutive workouts read as a timeline.
+    private var sessionTimelineConnector: some View {
+        Path { path in
+            path.move(to: CGPoint(x: 1, y: 0))
+            path.addLine(to: CGPoint(x: 1, y: 16))
+        }
+        .stroke(
+            LinearGradient(
+                colors: [themeColor.opacity(0.55), themeColor.opacity(0.05)],
+                startPoint: .top,
+                endPoint: .bottom
+            ),
+            style: StrokeStyle(lineWidth: 2, lineCap: .round, dash: [1, 5])
+        )
+        .frame(width: 2, height: 16)
+        .padding(.leading, 16)
     }
 
     private func sessionRow(_ session: TrainingSession, weekNumber: Int) -> some View {
