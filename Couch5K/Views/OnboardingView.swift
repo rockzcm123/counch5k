@@ -61,12 +61,8 @@ struct OnboardingView: View {
 
     var body: some View {
         ZStack {
-            LinearGradient(
-                colors: [themeColor.opacity(0.16), Color(.systemBackground)],
-                startPoint: .topLeading,
-                endPoint: .center
-            )
-            .ignoresSafeArea()
+            themeColor.opacity(0.08)
+                .ignoresSafeArea()
 
             VStack(spacing: 20) {
                 TabView(selection: $page) {

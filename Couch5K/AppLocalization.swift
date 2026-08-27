@@ -52,19 +52,12 @@ enum L10n {
     static var unfinishedWorkout: String { text("未完成的训练", "Unfinished workout") }
     static var planComplete: String { text("计划已完成", "Plan complete") }
     static var nextWorkout: String { text("下一次训练", "Next workout") }
-    static var resumeProgress: String { text("继续上次进度", "Resume your progress") }
-    static var easyPace: String { text("轻松节奏", "Easy pace") }
     static var resumeWorkout: String { text("继续训练", "Resume workout") }
     static var repeatWorkout: String { text("再次训练", "Repeat workout") }
     static var startWorkout: String { text("开始训练", "Start workout") }
     static var discardWorkout: String { text("放弃未完成训练", "Discard unfinished workout") }
     static var discardWorkoutHint: String {
         text("清除上次崩溃或中断后保存的训练进度", "Clear workout progress saved after an interruption")
-    }
-    static var planProgress: String { text("计划进度", "Plan progress") }
-    static var allPlanComplete: String { text("九周计划全部完成！", "You completed the nine-week plan!") }
-    static var planProgressMessage: String {
-        text("按自己的节奏前进，需要时可以重复训练。", "Move at your own pace and repeat workouts whenever needed.")
     }
     static var dailyHabitTip: String { text("今日跑步习惯", "Today's Running Habit") }
 

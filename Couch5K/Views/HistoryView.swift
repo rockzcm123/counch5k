@@ -395,16 +395,7 @@ struct HistoryView: View {
                             x: .value(L10n.week, activity.startDate),
                             y: .value(trendMetric.axisTitle, trendValue(for: activity))
                         )
-                        .foregroundStyle(
-                            LinearGradient(
-                                colors: [
-                                    themeColor.opacity(0.34),
-                                    themeColor.opacity(0.06)
-                                ],
-                                startPoint: .top,
-                                endPoint: .bottom
-                            )
-                        )
+                        .foregroundStyle(themeColor.opacity(0.14))
                         .interpolationMethod(.linear)
 
                         LineMark(

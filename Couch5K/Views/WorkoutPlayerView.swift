@@ -191,16 +191,10 @@ struct WorkoutPlayerView: View {
     }
 
     private var background: some View {
-        LinearGradient(
-            colors: [
-                color(for: engine.currentSegment?.kind).opacity(0.28),
-                Color(.systemBackground)
-            ],
-            startPoint: .top,
-            endPoint: .bottom
-        )
-        .ignoresSafeArea()
-        .animation(reduceMotion ? nil : .easeInOut, value: engine.currentSegment?.kind)
+        color(for: engine.currentSegment?.kind)
+            .opacity(0.14)
+            .ignoresSafeArea()
+            .animation(reduceMotion ? nil : .easeInOut, value: engine.currentSegment?.kind)
     }
 
     private var progressHeader: some View {
@@ -280,7 +274,7 @@ struct WorkoutPlayerView: View {
             Spacer()
         }
         .padding()
-        .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 18))
+        .background(Color(.secondarySystemBackground), in: RoundedRectangle(cornerRadius: 18))
     }
 
     private var metricsCard: some View {
@@ -317,7 +311,7 @@ struct WorkoutPlayerView: View {
         }
         .padding(.vertical, 10)
         .padding(.horizontal)
-        .background(.thinMaterial, in: RoundedRectangle(cornerRadius: 16))
+        .background(Color(.secondarySystemBackground), in: RoundedRectangle(cornerRadius: 16))
     }
 
     private func metric(title: String, value: String, icon: String) -> some View {

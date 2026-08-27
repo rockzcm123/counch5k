@@ -99,30 +99,21 @@ struct ProgramOverviewView: View {
     private var planView: some View {
         NavigationStack {
             ScrollView {
-                LazyVStack(spacing: 20) {
-                    profileHeaderBar
-                    dailyMotivationCard
-                    heroCard
-                    progressCard
+                VStack(spacing: 0) {
+                    heroSection
 
-                    ForEach(plan.weeks) { week in
-                        weekCard(week)
+                    VStack(spacing: 16) {
+                        statsRow
+                        dailyMotivationCard
+                        weekListSection
                     }
+                    .padding(.horizontal)
+                    .padding(.top, 20)
+                    .padding(.bottom, 24)
                 }
-                .padding()
             }
             .background(Color(.systemGroupedBackground))
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .topBarTrailing) {
-                    Button {
-                        isShowingSettings = true
-                    } label: {
-                        Image(systemName: "gearshape")
-                    }
-                    .accessibilityLabel(L10n.settings)
-                }
-            }
+            .toolbar(.hidden, for: .navigationBar)
             .sheet(isPresented: $isShowingSettings) {
                 PreferencesView()
             }
@@ -132,30 +123,95 @@ struct ProgramOverviewView: View {
         }
     }
 
-    private var profileHeaderBar: some View {
-        HStack(spacing: 14) {
-            profileAvatar
+    private var heroSection: some View {
+        let workout = activeWorkout ?? nextWorkout ?? plan.orderedWorkouts.last
+        let isResuming = activeWorkout != nil
 
-            VStack(alignment: .leading, spacing: 2) {
-                Text(greeting)
-                    .font(.caption.weight(.medium))
-                    .foregroundStyle(.secondary)
+        return VStack(alignment: .leading, spacing: 18) {
+            HStack(spacing: 12) {
+                heroAvatar
 
-                Text(
-                    profileName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
-                        ? plan.title
-                        : L10n.personalGreeting(profileName)
-                )
-                .font(.title3.bold())
-                .lineLimit(1)
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(greeting)
+                        .font(.caption.weight(.medium))
+                        .foregroundStyle(.white.opacity(0.75))
+
+                    Text(
+                        profileName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+                            ? plan.title
+                            : L10n.personalGreeting(profileName)
+                    )
+                    .font(.title3.bold())
+                    .foregroundStyle(.white)
+                    .lineLimit(1)
+                }
+
+                Spacer(minLength: 8)
+
+                Button {
+                    isShowingSettings = true
+                } label: {
+                    Image(systemName: "gearshape.fill")
+                        .font(.subheadline)
+                        .foregroundStyle(.white)
+                        .frame(width: 34, height: 34)
+                        .background(Color.white.opacity(0.18), in: Circle())
+                }
+                .accessibilityLabel(L10n.settings)
             }
 
-            Spacer(minLength: 8)
+            if let workout {
+                VStack(alignment: .leading, spacing: 4) {
+                    Text(isResuming ? L10n.unfinishedWorkout : nextWorkout == nil ? L10n.planComplete : L10n.nextWorkout)
+                        .font(.caption.weight(.semibold))
+                        .foregroundStyle(.white.opacity(0.75))
+
+                    Text(workout.displayTitle)
+                        .font(.title2.bold())
+                        .foregroundStyle(.white)
+
+                    Text("\(workout.session.totalDuration.workoutDurationText) · \(workout.session.summary)")
+                        .font(.footnote)
+                        .foregroundStyle(.white.opacity(0.85))
+                        .lineLimit(2)
+                }
+
+                Button {
+                    selectedWorkout = SelectedWorkout(
+                        workout: workout,
+                        snapshot: isResuming ? activeStore.snapshot : nil
+                    )
+                } label: {
+                    Label(
+                        isResuming ? L10n.resumeWorkout : nextWorkout == nil ? L10n.repeatWorkout : L10n.startWorkout,
+                        systemImage: isResuming ? "arrow.clockwise" : "play.fill"
+                    )
+                    .font(.subheadline.bold())
+                    .foregroundStyle(themeColor)
+                    .frame(maxWidth: .infinity)
+                    .frame(height: 50)
+                }
+                .background(Color.white, in: Capsule())
+
+                if isResuming {
+                    Button(L10n.discardWorkout, role: .destructive) {
+                        activeStore.clear()
+                    }
+                    .foregroundStyle(.white)
+                    .font(.footnote.weight(.medium))
+                    .frame(maxWidth: .infinity)
+                    .accessibilityHint(L10n.discardWorkoutHint)
+                }
+            }
         }
-        .accessibilityElement(children: .combine)
+        .padding(.horizontal, 20)
+        .padding(.top, 16)
+        .padding(.bottom, 26)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(themeColor)
     }
 
-    private var profileAvatar: some View {
+    private var heroAvatar: some View {
         Group {
             if let uiImage = UIImage(data: profilePhotoData) {
                 Image(uiImage: uiImage)
@@ -163,15 +219,42 @@ struct ProgramOverviewView: View {
                     .scaledToFill()
             } else {
                 Image(systemName: "person.fill")
-                    .font(.system(size: 19))
-                    .foregroundStyle(themeColor)
+                    .font(.system(size: 18))
+                    .foregroundStyle(.white)
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
-                    .background(themeColor.opacity(0.14))
+                    .background(Color.white.opacity(0.2))
             }
         }
-        .frame(width: 46, height: 46)
+        .frame(width: 44, height: 44)
         .clipShape(Circle())
         .accessibilityHidden(true)
+    }
+
+    private var statsRow: some View {
+        HStack(spacing: 12) {
+            statTile(value: "\(completedKeys.count)/\(plan.sessionCount)", label: L10n.completions)
+            statTile(value: "\(currentWeekNumber)/\(plan.weeks.count)", label: L10n.week)
+        }
+    }
+
+    private func statTile(value: String, label: String) -> some View {
+        VStack(alignment: .leading, spacing: 4) {
+            Text(value)
+                .font(.title2.bold())
+                .lineLimit(1)
+                .minimumScaleFactor(0.7)
+            Text(label)
+                .font(.caption)
+                .foregroundStyle(.secondary)
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(.vertical, 14)
+        .padding(.horizontal, 16)
+        .background(Color(.secondarySystemGroupedBackground), in: RoundedRectangle(cornerRadius: 16))
+    }
+
+    private var currentWeekNumber: Int {
+        nextWorkout?.weekNumber ?? plan.weeks.count
     }
 
     private var dailyMotivationCard: some View {
@@ -210,182 +293,87 @@ struct ProgramOverviewView: View {
             }
         }
         .padding(18)
-        .background(
-            Color(.secondarySystemGroupedBackground),
-            in: RoundedRectangle(cornerRadius: 20)
-        )
-        .overlay {
-            RoundedRectangle(cornerRadius: 20)
-                .stroke(themeColor.opacity(0.13))
-        }
-        .shadow(color: .black.opacity(0.05), radius: 10, y: 4)
+        .cardBackground()
         .accessibilityElement(children: .combine)
     }
 
-    private var heroCard: some View {
-        let workout = activeWorkout ?? nextWorkout ?? plan.orderedWorkouts.last
-        let isResuming = activeWorkout != nil
-
-        return VStack(alignment: .leading, spacing: 16) {
-            HStack(alignment: .top) {
-                VStack(alignment: .leading, spacing: 5) {
-                    Text(isResuming ? L10n.unfinishedWorkout : nextWorkout == nil ? L10n.planComplete : L10n.nextWorkout)
-                        .font(.subheadline.weight(.semibold))
-                        .foregroundStyle(.secondary)
-                    if let workout {
-                        Text(workout.displayTitle)
-                            .font(.title2.bold())
-                    }
-                }
-
-                Spacer()
-
-                Image(systemName: nextWorkout == nil && !isResuming ? "trophy.circle.fill" : "figure.run.circle.fill")
-                    .font(.system(size: 44))
-                    .foregroundStyle(themeColor)
-            }
-
-            if let workout {
-                Text(workout.session.summary)
-                    .foregroundStyle(.secondary)
-
-                HStack {
-                    Label(workout.session.totalDuration.workoutDurationText, systemImage: "clock")
-                        .lineLimit(1)
-                    Spacer(minLength: 8)
-                    Label(isResuming ? L10n.resumeProgress : L10n.easyPace, systemImage: "gauge.with.dots.needle.33percent")
-                        .lineLimit(1)
-                        .layoutPriority(1)
-                }
-                .font(.footnote.weight(.medium))
-
-                Button {
-                    selectedWorkout = SelectedWorkout(
-                        workout: workout,
-                        snapshot: isResuming ? activeStore.snapshot : nil
-                    )
-                } label: {
-                    Label(
-                        isResuming ? L10n.resumeWorkout : nextWorkout == nil ? L10n.repeatWorkout : L10n.startWorkout,
-                        systemImage: isResuming ? "arrow.clockwise" : "play.fill"
-                    )
-                    .frame(maxWidth: .infinity)
-                    .frame(minHeight: 56)
-                }
-                .buttonStyle(.borderedProminent)
-                .buttonBorderShape(.capsule)
-
-                if isResuming {
-                    Button(L10n.discardWorkout, role: .destructive) {
-                        activeStore.clear()
-                    }
-                    .frame(maxWidth: .infinity)
-                    .accessibilityHint(L10n.discardWorkoutHint)
-                }
-            }
-        }
-        .padding(20)
-        .background(
-            LinearGradient(
-                colors: [themeColor.opacity(0.14), Color(.secondarySystemGroupedBackground)],
-                startPoint: .topLeading,
-                endPoint: .bottomTrailing
-            ),
-            in: RoundedRectangle(cornerRadius: 20)
-        )
-        .shadow(color: .black.opacity(0.05), radius: 10, y: 4)
-    }
-
-    private var progressCard: some View {
-        VStack(alignment: .leading, spacing: 10) {
-            HStack {
-                Text(L10n.planProgress)
-                    .font(.headline)
-                Spacer()
-                Text("\(completedKeys.count) / \(plan.sessionCount)")
-                    .font(.subheadline.weight(.semibold))
-                    .foregroundStyle(.secondary)
-            }
-
-            ProgressView(value: Double(completedKeys.count), total: Double(plan.sessionCount))
-                .tint(themeColor)
-
-            Text(completedKeys.count == plan.sessionCount ? L10n.allPlanComplete : L10n.planProgressMessage)
-                .font(.footnote)
-                .foregroundStyle(.secondary)
-        }
-        .padding(18)
-        .cardBackground()
-    }
-
-    private func weekCard(_ week: TrainingWeek) -> some View {
+    private var weekListSection: some View {
         VStack(spacing: 0) {
-            Button {
-                withAnimation(.snappy) {
-                    if expandedWeeks.contains(week.number) {
-                        expandedWeeks.remove(week.number)
-                    } else {
-                        expandedWeeks.insert(week.number)
+            ForEach(Array(plan.weeks.enumerated()), id: \.element.id) { index, week in
+                weekRow(week)
+
+                if expandedWeeks.contains(week.number) {
+                    VStack(spacing: 0) {
+                        ForEach(week.sessions) { session in
+                            Button {
+                                selectedWorkout = SelectedWorkout(
+                                    workout: PlannedWorkout(weekNumber: week.number, session: session),
+                                    snapshot: nil
+                                )
+                            } label: {
+                                sessionRow(session, weekNumber: week.number)
+                            }
+                            .buttonStyle(.plain)
+
+                            if session.id != week.sessions.last?.id {
+                                Divider()
+                                    .padding(.leading, 54)
+                            }
+                        }
                     }
-                }
-            } label: {
-                HStack(spacing: 14) {
-                    Text("\(week.number)")
-                        .font(.headline)
-                        .frame(width: 42, height: 42)
-                        .foregroundStyle(.white)
-                        .background(weekIsComplete(week) ? Color.green : themeColor, in: Circle())
-
-                    VStack(alignment: .leading, spacing: 3) {
-                        Text(L10n.weekTitle(week.number))
-                            .font(.headline)
-                        Text(week.focus)
-                            .font(.subheadline)
-                            .foregroundStyle(.secondary)
-                    }
-
-                    Spacer()
-
-                    if weekIsComplete(week) {
-                        Image(systemName: "checkmark.seal.fill")
-                            .foregroundStyle(.green)
-                    }
-
-                    Image(systemName: expandedWeeks.contains(week.number) ? "chevron.up" : "chevron.down")
-                        .font(.footnote.weight(.bold))
-                        .foregroundStyle(.secondary)
-                }
-                .contentShape(Rectangle())
-            }
-            .buttonStyle(.plain)
-            .padding(16)
-
-            if expandedWeeks.contains(week.number) {
-                Divider()
                     .padding(.horizontal, 16)
-
-                VStack(spacing: 0) {
-                    ForEach(week.sessions) { session in
-                        Button {
-                            selectedWorkout = SelectedWorkout(
-                                workout: PlannedWorkout(weekNumber: week.number, session: session),
-                                snapshot: nil
-                            )
-                        } label: {
-                            sessionRow(session, weekNumber: week.number)
-                        }
-                        .buttonStyle(.plain)
-
-                        if session.id != week.sessions.last?.id {
-                            Divider()
-                                .padding(.leading, 54)
-                        }
-                    }
+                    .padding(.bottom, 8)
                 }
-                .padding(.horizontal, 16)
+
+                if index != plan.weeks.count - 1 {
+                    Divider()
+                        .padding(.leading, 16)
+                }
             }
         }
         .cardBackground()
+    }
+
+    private func weekRow(_ week: TrainingWeek) -> some View {
+        Button {
+            withAnimation(.snappy) {
+                if expandedWeeks.contains(week.number) {
+                    expandedWeeks.remove(week.number)
+                } else {
+                    expandedWeeks.insert(week.number)
+                }
+            }
+        } label: {
+            HStack(spacing: 14) {
+                Text("\(week.number)")
+                    .font(.headline)
+                    .frame(width: 42, height: 42)
+                    .foregroundStyle(.white)
+                    .background(weekIsComplete(week) ? Color.green : themeColor, in: Circle())
+
+                VStack(alignment: .leading, spacing: 3) {
+                    Text(L10n.weekTitle(week.number))
+                        .font(.headline)
+                    Text(week.focus)
+                        .font(.subheadline)
+                        .foregroundStyle(.secondary)
+                }
+
+                Spacer()
+
+                if weekIsComplete(week) {
+                    Image(systemName: "checkmark.seal.fill")
+                        .foregroundStyle(.green)
+                }
+
+                Image(systemName: expandedWeeks.contains(week.number) ? "chevron.up" : "chevron.down")
+                    .font(.footnote.weight(.bold))
+                    .foregroundStyle(.secondary)
+            }
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+        .padding(16)
     }
 
     private func sessionRow(_ session: TrainingSession, weekNumber: Int) -> some View {
@@ -690,7 +678,10 @@ private struct CardBackground: ViewModifier {
                 Color(.secondarySystemGroupedBackground),
                 in: RoundedRectangle(cornerRadius: cornerRadius)
             )
-            .shadow(color: .black.opacity(0.05), radius: 10, y: 4)
+            .overlay {
+                RoundedRectangle(cornerRadius: cornerRadius)
+                    .stroke(Color.secondary.opacity(0.15), lineWidth: 0.5)
+            }
     }
 }
 
