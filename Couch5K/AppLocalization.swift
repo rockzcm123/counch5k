@@ -502,6 +502,9 @@ enum L10n {
     static var previousMonth: String { text("上个月", "Previous month") }
     static var nextMonth: String { text("下个月", "Next month") }
     static var week: String { text("周", "Week") }
+    static var trainingWeeks: String { text("训练周", "Weeks") }
+    static var viewFullPlan: String { text("查看完整计划", "View full plan") }
+    static var nineWeekPlan: String { text("九周计划", "9-Week Plan") }
     static var count: String { text("次数", "Count") }
     static var hasNotes: String { text("有笔记", "Has notes") }
     static var workout: String { text("训练", "Workout") }

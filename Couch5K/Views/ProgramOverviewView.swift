@@ -11,6 +11,7 @@ struct ProgramOverviewView: View {
 
     @StateObject private var activeStore = ActiveWorkoutStore()
     @State private var expandedWeeks: Set<Int> = [1]
+    @State private var selectedWeekNumber: Int?
     @State private var isShowingSettings = false
     @State private var selectedWorkout: SelectedWorkout?
     @State private var healthMessage: String?
@@ -105,7 +106,8 @@ struct ProgramOverviewView: View {
                     VStack(spacing: 16) {
                         statsRow
                         dailyMotivationCard
-                        weekListSection
+                        weekStrip
+                        selectedWeekSection
                     }
                     .padding(.horizontal)
                     .padding(.top, 20)
@@ -257,6 +259,10 @@ struct ProgramOverviewView: View {
         nextWorkout?.weekNumber ?? plan.weeks.count
     }
 
+    private var effectiveSelectedWeek: Int {
+        selectedWeekNumber ?? currentWeekNumber
+    }
+
     private var dailyMotivationCard: some View {
         let prompt = L10n.dailyHabitPrompt(for: .now)
 
@@ -295,6 +301,108 @@ struct ProgramOverviewView: View {
         .padding(18)
         .cardBackground()
         .accessibilityElement(children: .combine)
+    }
+
+    private var weekStrip: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            HStack {
+                Text(L10n.trainingWeeks)
+                    .font(.headline)
+
+                Spacer()
+
+                NavigationLink {
+                    fullPlanView
+                } label: {
+                    Text(L10n.viewFullPlan)
+                        .font(.caption.weight(.semibold))
+                        .foregroundStyle(themeColor)
+                }
+            }
+
+            ScrollView(.horizontal, showsIndicators: false) {
+                HStack(spacing: 10) {
+                    ForEach(plan.weeks) { week in
+                        weekChip(week)
+                    }
+                }
+            }
+        }
+    }
+
+    private func weekChip(_ week: TrainingWeek) -> some View {
+        let isSelected = week.number == effectiveSelectedWeek
+        let isComplete = weekIsComplete(week)
+
+        return Button {
+            withAnimation(.snappy) {
+                selectedWeekNumber = week.number
+            }
+        } label: {
+            Text("\(week.number)")
+                .font(.subheadline.bold())
+                .frame(width: 40, height: 40)
+                .foregroundStyle(isComplete || isSelected ? .white : .primary)
+                .background(
+                    isComplete ? Color.green : (isSelected ? themeColor : Color(.secondarySystemGroupedBackground)),
+                    in: Circle()
+                )
+        }
+        .buttonStyle(.plain)
+        .accessibilityLabel(L10n.weekTitle(week.number))
+        .accessibilityAddTraits(isSelected ? .isSelected : [])
+    }
+
+    private var selectedWeekSection: some View {
+        let week = plan.weeks.first { $0.number == effectiveSelectedWeek }
+
+        return VStack(spacing: 0) {
+            if let week {
+                VStack(alignment: .leading, spacing: 3) {
+                    Text(L10n.weekTitle(week.number))
+                        .font(.headline)
+                    Text(week.focus)
+                        .font(.subheadline)
+                        .foregroundStyle(.secondary)
+                }
+                .padding(16)
+
+                Divider()
+                    .padding(.leading, 16)
+
+                VStack(spacing: 0) {
+                    ForEach(week.sessions) { session in
+                        Button {
+                            selectedWorkout = SelectedWorkout(
+                                workout: PlannedWorkout(weekNumber: week.number, session: session),
+                                snapshot: nil
+                            )
+                        } label: {
+                            sessionRow(session, weekNumber: week.number)
+                        }
+                        .buttonStyle(.plain)
+
+                        if session.id != week.sessions.last?.id {
+                            Divider()
+                                .padding(.leading, 54)
+                        }
+                    }
+                }
+                .padding(.horizontal, 16)
+                .padding(.bottom, 8)
+            }
+        }
+        .cardBackground()
+    }
+
+    private var fullPlanView: some View {
+        ScrollView {
+            weekListSection
+                .padding()
+        }
+        .background(Color(.systemGroupedBackground))
+        .navigationTitle(L10n.nineWeekPlan)
+        .navigationBarTitleDisplayMode(.inline)
     }
 
     private var weekListSection: some View {
