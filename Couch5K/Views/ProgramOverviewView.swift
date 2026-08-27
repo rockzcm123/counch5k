@@ -188,12 +188,15 @@ struct ProgramOverviewView: View {
                         isResuming ? L10n.resumeWorkout : nextWorkout == nil ? L10n.repeatWorkout : L10n.startWorkout,
                         systemImage: isResuming ? "arrow.clockwise" : "play.fill"
                     )
-                    .font(.subheadline.bold())
+                    .imageScale(.large)
+                    .font(.title3.bold())
                     .foregroundStyle(themeColor)
                     .frame(maxWidth: .infinity)
-                    .frame(height: 50)
+                    .frame(height: 64)
                 }
                 .background(Color.white, in: Capsule())
+                .shadow(color: .black.opacity(0.18), radius: 14, y: 6)
+                .padding(.top, 2)
 
                 if isResuming {
                     Button(L10n.discardWorkout, role: .destructive) {
@@ -256,7 +259,17 @@ struct ProgramOverviewView: View {
     }
 
     private var currentWeekNumber: Int {
-        nextWorkout?.weekNumber ?? plan.weeks.count
+        lastRunWeekNumber ?? 1
+    }
+
+    /// The week of the most recently completed plan session, so the week
+    /// strip always opens on wherever you last ran rather than jumping
+    /// ahead to what's next.
+    private var lastRunWeekNumber: Int? {
+        records
+            .filter { record in plan.weeks.contains { $0.number == record.weekNumber } }
+            .max { $0.completedAt < $1.completedAt }?
+            .weekNumber
     }
 
     private var effectiveSelectedWeek: Int {
