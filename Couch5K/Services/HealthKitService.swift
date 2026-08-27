@@ -14,6 +14,18 @@ enum HealthKitServiceError: LocalizedError {
     }
 }
 
+/// A plan workout completed on Apple Watch, reconstructed from the
+/// Couch5K-specific metadata the Watch app attaches to its HealthKit
+/// workouts, so the iPhone app can catch up its own local history.
+struct ReconciledWorkout: Sendable {
+    let healthKitWorkoutID: String
+    let weekNumber: Int
+    let sessionDay: Int
+    let startedAt: Date
+    let completedAt: Date
+    let distanceMeters: Double
+}
+
 actor HealthKitService {
     private let healthStore = HKHealthStore()
 
@@ -30,6 +42,56 @@ actor HealthKitService {
             toShare: [workoutType, routeType, distanceType, energyType],
             read: [workoutType, distanceType]
         )
+    }
+
+    /// Finds Couch5K plan workouts recorded in HealthKit (i.e. completed on
+    /// Apple Watch) that aren't already reflected in the app's own local
+    /// history, identified by the Couch5K-specific metadata the Watch app
+    /// attaches. `existingIDs` should be every non-empty
+    /// `WorkoutRecord.healthKitWorkoutID` already stored locally.
+    func fetchUnsyncedWatchWorkouts(excluding existingIDs: Set<String>) async throws -> [ReconciledWorkout] {
+        guard HKHealthStore.isHealthDataAvailable() else {
+            throw HealthKitServiceError.unavailable
+        }
+
+        let workoutType = HKObjectType.workoutType()
+        let predicate = HKQuery.predicateForWorkouts(with: .running)
+
+        let workouts: [HKWorkout] = try await withCheckedThrowingContinuation { continuation in
+            let query = HKSampleQuery(
+                sampleType: workoutType,
+                predicate: predicate,
+                limit: HKObjectQueryNoLimit,
+                sortDescriptors: nil
+            ) { _, samples, error in
+                if let error {
+                    continuation.resume(throwing: error)
+                } else {
+                    continuation.resume(returning: (samples as? [HKWorkout]) ?? [])
+                }
+            }
+            healthStore.execute(query)
+        }
+
+        return workouts.compactMap { workout in
+            guard workout.metadata?["Couch5KWatchWorkout"] as? Bool == true,
+                  let weekNumber = workout.metadata?["Couch5KWeekNumber"] as? Int,
+                  let sessionDay = workout.metadata?["Couch5KSessionDay"] as? Int else {
+                return nil
+            }
+
+            let healthKitWorkoutID = workout.uuid.uuidString
+            guard !existingIDs.contains(healthKitWorkoutID) else { return nil }
+
+            return ReconciledWorkout(
+                healthKitWorkoutID: healthKitWorkoutID,
+                weekNumber: weekNumber,
+                sessionDay: sessionDay,
+                startedAt: workout.startDate,
+                completedAt: workout.endDate,
+                distanceMeters: workout.totalDistance?.doubleValue(for: .meter()) ?? 0
+            )
+        }
     }
 
     func saveWorkout(_ result: WorkoutResult) async throws {

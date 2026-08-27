@@ -15,6 +15,10 @@ final class WorkoutRecord {
     var routeData: Data = Data()
     var workoutIdentifier: String = ""
     var displayTitle: String = ""
+    /// The HealthKit workout UUID this record was reconciled from, when
+    /// completed on Apple Watch rather than the iPhone app. Empty for
+    /// workouts completed directly in the iPhone app.
+    var healthKitWorkoutID: String = ""
 
     init(
         id: UUID = UUID(),
@@ -28,7 +32,8 @@ final class WorkoutRecord {
         route: [RoutePoint] = [],
         workoutIdentifier: String = "",
         displayTitle: String = "",
-        notes: String = ""
+        notes: String = "",
+        healthKitWorkoutID: String = ""
     ) {
         self.id = id
         self.weekNumber = weekNumber
@@ -42,6 +47,7 @@ final class WorkoutRecord {
         self.workoutIdentifier = workoutIdentifier
         self.displayTitle = displayTitle
         self.notes = notes
+        self.healthKitWorkoutID = healthKitWorkoutID
     }
 
     var completionKey: String {

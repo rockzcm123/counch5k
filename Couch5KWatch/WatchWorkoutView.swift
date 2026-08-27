@@ -171,7 +171,7 @@ struct WatchWorkoutView: View {
             Button("开始") {
                 Task {
                     do {
-                        try await workoutManager.start()
+                        try await workoutManager.start(weekNumber: weekNumber, sessionDay: engine.session.day)
                         engine.start()
                         WKInterfaceDevice.current().play(.start)
                     } catch {

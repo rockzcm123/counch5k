@@ -122,7 +122,43 @@ struct ProgramOverviewView: View {
             }
             .task {
                 try? await healthService.requestAuthorization()
+                await syncWatchWorkouts()
             }
+        }
+    }
+
+    /// Pulls in any plan workouts completed on Apple Watch that this app
+    /// doesn't have locally yet, reconstructing them from the Couch5K
+    /// metadata the Watch app attaches to its HealthKit workouts.
+    private func syncWatchWorkouts() async {
+        let existingIDs = Set(records.compactMap { record in
+            record.healthKitWorkoutID.isEmpty ? nil : record.healthKitWorkoutID
+        })
+
+        guard let reconciled = try? await healthService.fetchUnsyncedWatchWorkouts(excluding: existingIDs),
+              !reconciled.isEmpty else {
+            return
+        }
+
+        for workout in reconciled {
+            let session = plan.workout(weekNumber: workout.weekNumber, sessionDay: workout.sessionDay)?.session
+            let record = WorkoutRecord(
+                weekNumber: workout.weekNumber,
+                sessionDay: workout.sessionDay,
+                sessionSummary: session?.summary ?? "",
+                plannedDuration: session?.totalDuration ?? workout.completedAt.timeIntervalSince(workout.startedAt),
+                startedAt: workout.startedAt,
+                completedAt: workout.completedAt,
+                distanceMeters: workout.distanceMeters,
+                healthKitWorkoutID: workout.healthKitWorkoutID
+            )
+            modelContext.insert(record)
+        }
+
+        do {
+            try modelContext.save()
+        } catch {
+            assertionFailure("Unable to save reconciled watch workouts: \(error)")
         }
     }
 

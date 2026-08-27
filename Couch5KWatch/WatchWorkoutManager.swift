@@ -10,7 +10,7 @@ final class WatchWorkoutManager: NSObject, ObservableObject {
     private var session: HKWorkoutSession?
     private var builder: HKLiveWorkoutBuilder?
 
-    func start(at date: Date = .now) async throws {
+    func start(weekNumber: Int, sessionDay: Int, at date: Date = .now) async throws {
         guard HKHealthStore.isHealthDataAvailable() else {
             throw WatchWorkoutError.healthDataUnavailable
         }
@@ -43,6 +43,16 @@ final class WatchWorkoutManager: NSObject, ObservableObject {
 
         session.startActivity(with: date)
         try await beginCollection(builder, at: date)
+        // Tags this workout so the iPhone app can find and reconcile it into
+        // its own local history — see HealthKitService.fetchUnsyncedWatchWorkouts.
+        try await addMetadata(
+            [
+                "Couch5KWatchWorkout": true,
+                "Couch5KWeekNumber": weekNumber,
+                "Couch5KSessionDay": sessionDay
+            ],
+            to: builder
+        )
     }
 
     func pause() {
@@ -84,6 +94,23 @@ final class WatchWorkoutManager: NSObject, ObservableObject {
     ) async throws {
         try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<Void, Error>) in
             builder.beginCollection(withStart: date) { success, error in
+                if let error {
+                    continuation.resume(throwing: error)
+                } else if success {
+                    continuation.resume()
+                } else {
+                    continuation.resume(throwing: WatchWorkoutError.collectionFailed)
+                }
+            }
+        }
+    }
+
+    private func addMetadata(
+        _ metadata: [String: Any],
+        to builder: HKLiveWorkoutBuilder
+    ) async throws {
+        try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<Void, Error>) in
+            builder.addMetadata(metadata) { success, error in
                 if let error {
                     continuation.resume(throwing: error)
                 } else if success {
