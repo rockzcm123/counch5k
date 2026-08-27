@@ -110,7 +110,7 @@ struct ProgramOverviewView: View {
                         weekStrip
                         selectedWeekSection
                     }
-                    .padding(.horizontal)
+                    .padding(.horizontal, 20)
                     .padding(.top, 20)
                     .padding(.bottom, 24)
                 }
@@ -358,8 +358,10 @@ struct ProgramOverviewView: View {
                         weekChip(week)
                     }
                 }
-                .frame(maxWidth: .infinity, alignment: .leading)
+                .padding(.horizontal, 20)
             }
+            .defaultScrollAnchor(.leading)
+            .padding(.horizontal, -20)
         }
         .frame(maxWidth: .infinity, alignment: .leading)
     }
