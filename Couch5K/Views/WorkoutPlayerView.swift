@@ -242,7 +242,7 @@ struct WorkoutPlayerView: View {
                 .font(.title.bold())
 
             Text(clockText(engine.segmentRemaining))
-                .font(.system(size: timerFontSize, weight: .bold, design: .rounded))
+                .font(.system(size: timerFontSize, weight: .heavy, design: .rounded))
                 .monospacedDigit()
                 .minimumScaleFactor(0.55)
                 .lineLimit(1)

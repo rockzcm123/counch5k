@@ -16,6 +16,7 @@ struct Couch5KApp: App {
         WindowGroup {
             RootView()
                 .tint(AppTheme(rawValue: colorTheme)?.color ?? .brandPink)
+                .fontDesign(.rounded)
         }
         .modelContainer(for: [WorkoutRecord.self, CustomWorkout.self])
     }
