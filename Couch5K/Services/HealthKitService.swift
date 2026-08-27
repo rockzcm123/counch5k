@@ -94,7 +94,53 @@ actor HealthKitService {
         }
     }
 
-    func saveWorkout(_ result: WorkoutResult) async throws {
+    /// Finds every completed Couch5K plan session recorded in HealthKit,
+    /// regardless of whether it was completed in the iPhone app or on Apple
+    /// Watch, returning `PlannedWorkout.completionKey`-style keys
+    /// ("weekNumber-sessionDay"). Used to compute "what's next" without
+    /// needing direct access to the other device's local data.
+    func fetchCompletedPlanSessionKeys() async throws -> Set<String> {
+        guard HKHealthStore.isHealthDataAvailable() else {
+            throw HealthKitServiceError.unavailable
+        }
+
+        let workoutType = HKObjectType.workoutType()
+        let predicate = HKQuery.predicateForWorkouts(with: .running)
+
+        let workouts: [HKWorkout] = try await withCheckedThrowingContinuation { continuation in
+            let query = HKSampleQuery(
+                sampleType: workoutType,
+                predicate: predicate,
+                limit: HKObjectQueryNoLimit,
+                sortDescriptors: nil
+            ) { _, samples, error in
+                if let error {
+                    continuation.resume(throwing: error)
+                } else {
+                    continuation.resume(returning: (samples as? [HKWorkout]) ?? [])
+                }
+            }
+            healthStore.execute(query)
+        }
+
+        return Set(workouts.compactMap { workout -> String? in
+            guard let weekNumber = workout.metadata?["Couch5KWeekNumber"] as? Int,
+                  let sessionDay = workout.metadata?["Couch5KSessionDay"] as? Int else {
+                return nil
+            }
+            return "\(weekNumber)-\(sessionDay)"
+        })
+    }
+
+    // WorkoutResult/RoutePoint (WorkoutLocationService.swift) are iOS-only —
+    // the Watch app saves its own workouts directly via WatchWorkoutManager's
+    // live HKWorkoutSession, so this whole save path is unneeded there.
+    #if os(iOS)
+    func saveWorkout(
+        _ result: WorkoutResult,
+        weekNumber: Int? = nil,
+        sessionDay: Int? = nil
+    ) async throws {
         guard HKHealthStore.isHealthDataAvailable() else {
             throw HealthKitServiceError.unavailable
         }
@@ -112,13 +158,16 @@ actor HealthKitService {
         )
 
         try await beginCollection(builder, at: result.startedAt)
-        try await addMetadata(
-            [
-                HKMetadataKeyIndoorWorkout: false,
-                "Couch5KWorkout": true
-            ],
-            to: builder
-        )
+
+        var metadata: [String: Any] = [
+            HKMetadataKeyIndoorWorkout: false,
+            "Couch5KWorkout": true
+        ]
+        if let weekNumber, let sessionDay, (1...9).contains(weekNumber) {
+            metadata["Couch5KWeekNumber"] = weekNumber
+            metadata["Couch5KSessionDay"] = sessionDay
+        }
+        try await addMetadata(metadata, to: builder)
 
         var samples: [HKQuantitySample] = []
 
@@ -287,4 +336,5 @@ actor HealthKitService {
             }
         }
     }
+    #endif
 }

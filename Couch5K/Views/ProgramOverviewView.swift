@@ -679,7 +679,11 @@ struct ProgramOverviewView: View {
         Task {
             do {
                 try await healthService.requestAuthorization()
-                try await healthService.saveWorkout(result)
+                try await healthService.saveWorkout(
+                    result,
+                    weekNumber: workout.weekNumber,
+                    sessionDay: workout.session.day
+                )
             } catch {
                 await MainActor.run {
                     healthMessage = error.localizedDescription

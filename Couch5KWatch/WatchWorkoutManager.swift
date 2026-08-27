@@ -4,6 +4,7 @@ import Foundation
 @MainActor
 final class WatchWorkoutManager: NSObject, ObservableObject {
     @Published private(set) var heartRate: Double = 0
+    @Published private(set) var distanceMeters: Double = 0
     @Published private(set) var errorMessage: String?
 
     private let healthStore = HKHealthStore()
@@ -148,17 +149,26 @@ extension WatchWorkoutManager: HKLiveWorkoutBuilderDelegate {
         _ workoutBuilder: HKLiveWorkoutBuilder,
         didCollectDataOf collectedTypes: Set<HKSampleType>
     ) {
-        guard let heartRateType = HKQuantityType.quantityType(forIdentifier: .heartRate),
-              collectedTypes.contains(heartRateType),
-              let statistics = workoutBuilder.statistics(for: heartRateType),
-              let quantity = statistics.mostRecentQuantity() else {
-            return
+        if let heartRateType = HKQuantityType.quantityType(forIdentifier: .heartRate),
+           collectedTypes.contains(heartRateType),
+           let statistics = workoutBuilder.statistics(for: heartRateType),
+           let quantity = statistics.mostRecentQuantity() {
+            let value = quantity.doubleValue(
+                for: HKUnit.count().unitDivided(by: .minute())
+            )
+            Task { @MainActor [weak self] in
+                self?.heartRate = value
+            }
         }
-        let value = quantity.doubleValue(
-            for: HKUnit.count().unitDivided(by: .minute())
-        )
-        Task { @MainActor [weak self] in
-            self?.heartRate = value
+
+        if let distanceType = HKQuantityType.quantityType(forIdentifier: .distanceWalkingRunning),
+           collectedTypes.contains(distanceType),
+           let statistics = workoutBuilder.statistics(for: distanceType),
+           let sum = statistics.sumQuantity() {
+            let meters = sum.doubleValue(for: .meter())
+            Task { @MainActor [weak self] in
+                self?.distanceMeters = meters
+            }
         }
     }
 }

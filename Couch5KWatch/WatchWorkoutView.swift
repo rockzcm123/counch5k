@@ -101,6 +101,7 @@ struct WatchWorkoutView: View {
     @StateObject private var engine: WatchIntervalEngine
     @StateObject private var workoutManager = WatchWorkoutManager()
     @State private var errorMessage: String?
+    @State private var workoutStartedAt: Date?
 
     private let weekNumber: Int
     private let timer = Timer.publish(every: 0.25, on: .main, in: .common).autoconnect()
@@ -127,6 +128,15 @@ struct WatchWorkoutView: View {
                 .monospacedDigit()
                 .accessibilityLabel("剩余时间")
                 .accessibilityValue(clockText(engine.remaining))
+
+            if workoutManager.distanceMeters > 0 {
+                HStack(spacing: 10) {
+                    Text(distanceText)
+                    Text(paceText)
+                }
+                .font(.caption2)
+                .foregroundStyle(.secondary)
+            }
 
             if workoutManager.heartRate > 0 {
                 Label(
@@ -172,6 +182,7 @@ struct WatchWorkoutView: View {
                 Task {
                     do {
                         try await workoutManager.start(weekNumber: weekNumber, sessionDay: engine.session.day)
+                        workoutStartedAt = .now
                         engine.start()
                         WKInterfaceDevice.current().play(.start)
                     } catch {
@@ -214,5 +225,18 @@ struct WatchWorkoutView: View {
     private func clockText(_ duration: TimeInterval) -> String {
         let value = max(Int(duration.rounded(.up)), 0)
         return String(format: "%02d:%02d", value / 60, value % 60)
+    }
+
+    private var distanceText: String {
+        String(format: "%.2f 公里", workoutManager.distanceMeters / 1_000)
+    }
+
+    private var paceText: String {
+        guard let workoutStartedAt else { return "--:-- /公里" }
+        let km = workoutManager.distanceMeters / 1_000
+        guard km >= 0.02 else { return "--:-- /公里" }
+        let elapsed = Date.now.timeIntervalSince(workoutStartedAt)
+        let secondsPerKm = elapsed / km
+        return "\(clockText(secondsPerKm)) /公里"
     }
 }
