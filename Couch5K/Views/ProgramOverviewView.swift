@@ -13,6 +13,7 @@ struct ProgramOverviewView: View {
     @State private var expandedWeeks: Set<Int> = [1]
     @State private var selectedWeekNumber: Int?
     @State private var isShowingSettings = false
+    @State private var motivationPromptOffset = 0
     @State private var selectedWorkout: SelectedWorkout?
     @State private var healthMessage: String?
     @AppStorage(AppTheme.storageKey) private var colorTheme = AppTheme.pink.rawValue
@@ -277,43 +278,59 @@ struct ProgramOverviewView: View {
     }
 
     private var dailyMotivationCard: some View {
-        let prompt = L10n.dailyHabitPrompt(for: .now)
+        let prompt = L10n.dailyHabitPrompt(for: .now, offset: motivationPromptOffset)
 
-        return HStack(alignment: .top, spacing: 14) {
-            Image(systemName: "quote.opening")
-                .font(.title2)
-                .foregroundStyle(themeColor)
-                .frame(width: 44, height: 44)
-                .background(themeColor.opacity(0.11), in: Circle())
-
-            VStack(alignment: .leading, spacing: 7) {
-                HStack {
-                    Text(L10n.dailyHabitTip)
-                        .font(.caption.weight(.semibold))
-                        .foregroundStyle(.secondary)
-                        .lineLimit(1)
-
-                    Spacer(minLength: 8)
-
-                    Text(prompt.principle)
-                        .font(.caption2.bold())
-                        .foregroundStyle(themeColor)
-                        .lineLimit(1)
-                        .fixedSize(horizontal: true, vertical: false)
-                        .padding(.horizontal, 9)
-                        .padding(.vertical, 5)
-                        .background(themeColor.opacity(0.1), in: Capsule())
-                }
-
-                Text(prompt.message)
-                    .font(.headline)
-                    .fixedSize(horizontal: false, vertical: true)
-                    .lineSpacing(3)
+        return Button {
+            UIImpactFeedbackGenerator(style: .light).impactOccurred()
+            withAnimation(.easeInOut) {
+                motivationPromptOffset += 1
             }
+        } label: {
+            HStack(alignment: .top, spacing: 14) {
+                Image(systemName: "quote.opening")
+                    .font(.title2)
+                    .foregroundStyle(themeColor)
+                    .frame(width: 44, height: 44)
+                    .background(themeColor.opacity(0.11), in: Circle())
+
+                VStack(alignment: .leading, spacing: 7) {
+                    HStack {
+                        Text(L10n.dailyHabitTip)
+                            .font(.caption.weight(.semibold))
+                            .foregroundStyle(.secondary)
+                            .lineLimit(1)
+
+                        Spacer(minLength: 8)
+
+                        Image(systemName: "arrow.triangle.2.circlepath")
+                            .font(.caption2)
+                            .foregroundStyle(.secondary)
+
+                        Text(prompt.principle)
+                            .font(.caption2.bold())
+                            .foregroundStyle(themeColor)
+                            .lineLimit(1)
+                            .fixedSize(horizontal: true, vertical: false)
+                            .padding(.horizontal, 9)
+                            .padding(.vertical, 5)
+                            .background(themeColor.opacity(0.1), in: Capsule())
+                    }
+
+                    Text(prompt.message)
+                        .font(.headline)
+                        .fixedSize(horizontal: false, vertical: true)
+                        .lineSpacing(3)
+                        .multilineTextAlignment(.leading)
+                }
+            }
+            .padding(18)
+            .cardBackground()
+            .id(motivationPromptOffset)
+            .transition(.opacity)
         }
-        .padding(18)
-        .cardBackground()
+        .buttonStyle(.plain)
         .accessibilityElement(children: .combine)
+        .accessibilityHint(L10n.tapForAnotherTip)
     }
 
     private var weekStrip: some View {
@@ -371,12 +388,20 @@ struct ProgramOverviewView: View {
 
         return VStack(spacing: 0) {
             if let week {
-                VStack(alignment: .leading, spacing: 3) {
-                    Text(L10n.weekTitle(week.number))
-                        .font(.headline)
-                    Text(week.focus)
-                        .font(.subheadline)
-                        .foregroundStyle(.secondary)
+                HStack(spacing: 12) {
+                    Image(systemName: weekIsComplete(week) ? "checkmark.seal.fill" : "figure.run")
+                        .font(.subheadline.bold())
+                        .foregroundStyle(.white)
+                        .frame(width: 38, height: 38)
+                        .background(weekIsComplete(week) ? Color.green : themeColor, in: Circle())
+
+                    VStack(alignment: .leading, spacing: 3) {
+                        Text(L10n.weekTitle(week.number))
+                            .font(.headline)
+                        Text(week.focus)
+                            .font(.subheadline)
+                            .foregroundStyle(.secondary)
+                    }
                 }
                 .padding(16)
 
@@ -500,11 +525,12 @@ struct ProgramOverviewView: View {
     private func sessionRow(_ session: TrainingSession, weekNumber: Int) -> some View {
         let isComplete = completedKeys.contains("\(weekNumber)-\(session.day)")
 
-        return HStack(alignment: .top, spacing: 12) {
-            Image(systemName: isComplete ? "checkmark.circle.fill" : "circle")
-                .font(.title3)
-                .foregroundStyle(isComplete ? Color.green : Color.secondary.opacity(0.5))
-                .padding(.top, 2)
+        return HStack(alignment: .center, spacing: 12) {
+            Image(systemName: isComplete ? "checkmark" : "figure.run")
+                .font(.subheadline.bold())
+                .foregroundStyle(.white)
+                .frame(width: 34, height: 34)
+                .background(isComplete ? Color.green : Color.secondary.opacity(0.5), in: Circle())
 
             VStack(alignment: .leading, spacing: 4) {
                 Text(session.title)
@@ -520,8 +546,11 @@ struct ProgramOverviewView: View {
                 .font(.caption.weight(.medium))
                 .foregroundStyle(.secondary)
 
-            Image(systemName: isComplete ? "arrow.clockwise.circle.fill" : "play.circle.fill")
-                .foregroundStyle(themeColor)
+            Image(systemName: isComplete ? "arrow.clockwise" : "play.fill")
+                .font(.footnote.bold())
+                .foregroundStyle(.white)
+                .frame(width: 30, height: 30)
+                .background(themeColor, in: Circle())
         }
         .padding(.vertical, 13)
     }

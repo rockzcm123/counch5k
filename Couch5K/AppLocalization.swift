@@ -60,8 +60,9 @@ enum L10n {
         text("清除上次崩溃或中断后保存的训练进度", "Clear workout progress saved after an interruption")
     }
     static var dailyHabitTip: String { text("今日跑步习惯", "Today's Running Habit") }
+    static var tapForAnotherTip: String { text("轻触查看下一条", "Tap for another tip") }
 
-    static func dailyHabitPrompt(for date: Date) -> (principle: String, message: String) {
+    static func dailyHabitPrompt(for date: Date, offset: Int = 0) -> (principle: String, message: String) {
         let prompts = [
             (
                 text("身份认同", "Identity"),
@@ -149,7 +150,8 @@ enum L10n {
             )
         ]
         let day = Calendar.current.ordinality(of: .day, in: .era, for: date) ?? 0
-        return prompts[day % prompts.count]
+        let index = ((day + offset) % prompts.count + prompts.count) % prompts.count
+        return prompts[index]
     }
 
     static var trainingPrompts: String { text("训练提示", "Workout prompts") }
