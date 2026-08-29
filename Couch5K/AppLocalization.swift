@@ -56,7 +56,7 @@ enum L10n {
     static var startTab: String { text("开始", "Start") }
     static var historyTab: String { text("历史", "History") }
     static var customTab: String { text("自定义", "Custom") }
-    static var start: String { text("开始", "Start") }
+    static var startRunning: String { text("开始跑步", "Start Running") }
 
     static func personalGreeting(_ name: String) -> String {
         text("你好，\(name)", "Hi, \(name)")

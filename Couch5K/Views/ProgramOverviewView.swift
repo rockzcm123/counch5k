@@ -191,16 +191,18 @@ struct ProgramOverviewView: View {
                         snapshot: isResuming ? activeStore.snapshot : nil
                     )
                 } label: {
-                    VStack(spacing: 6) {
+                    VStack(spacing: 14) {
                         Image(systemName: isResuming ? "arrow.clockwise" : "play.fill")
-                            .font(.system(size: 42, weight: .bold))
-                        Text(L10n.start)
+                            .font(.system(size: 64, weight: .bold))
+                            .foregroundStyle(.white)
+                            .frame(width: 220, height: 220)
+                            .background(themeColor, in: Circle())
+                            .shadow(color: themeColor.opacity(0.35), radius: 20, y: 10)
+
+                        Text(L10n.startRunning)
                             .font(.title.bold())
+                            .foregroundStyle(.primary)
                     }
-                    .foregroundStyle(.white)
-                    .frame(width: 220, height: 220)
-                    .background(themeColor, in: Circle())
-                    .shadow(color: themeColor.opacity(0.35), radius: 20, y: 10)
                 }
                 .buttonStyle(.plain)
                 .disabled(workout == nil)
