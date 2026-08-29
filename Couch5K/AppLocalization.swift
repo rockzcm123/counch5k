@@ -40,6 +40,10 @@ enum L10n {
 
     static var pullFromIphone: String { text("从 iPhone 同步", "Sync from iPhone") }
     static var pushToIphone: String { text("同步到 iPhone", "Sync to iPhone") }
+    static var watchConnectivityUnavailable: String { text("暂时无法连接 iPhone", "Can't connect to iPhone right now") }
+    static var iphoneNotReachable: String {
+        text("请先在 iPhone 上打开 Couch 5K，再试一次。", "Open Couch 5K on your iPhone first, then try again.")
+    }
 
     static var continueAction: String { text("继续", "Continue") }
     static var done: String { text("完成", "Done") }

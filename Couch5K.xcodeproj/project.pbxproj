@@ -39,7 +39,10 @@
 		A1000000000000000000001E /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = A70000000000000000000009 /* InfoPlist.strings */; };
 		A1000000000000000000001F /* AboutMeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000023 /* AboutMeView.swift */; };
 		A10000000000000000000020 /* AppTheme.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000024 /* AppTheme.swift */; };
-		A10000000000000000000021 /* HealthKitService.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000012 /* HealthKitService.swift */; };
+		A10000000000000000000022 /* WorkoutHistoryPayload.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000025 /* WorkoutHistoryPayload.swift */; };
+		A10000000000000000000023 /* WorkoutHistoryPayload.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000025 /* WorkoutHistoryPayload.swift */; };
+		A10000000000000000000024 /* PhoneConnectivityService.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000026 /* PhoneConnectivityService.swift */; };
+		A10000000000000000000025 /* WatchConnectivityService.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000027 /* WatchConnectivityService.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -110,6 +113,9 @@
 		A20000000000000000000022 /* InfoPlist.strings */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = InfoPlist.strings; path = "zh-Hans.lproj/InfoPlist.strings"; sourceTree = "<group>"; };
 		A20000000000000000000023 /* AboutMeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AboutMeView.swift; sourceTree = "<group>"; };
 		A20000000000000000000024 /* AppTheme.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppTheme.swift; sourceTree = "<group>"; };
+		A20000000000000000000025 /* WorkoutHistoryPayload.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WorkoutHistoryPayload.swift; sourceTree = "<group>"; };
+		A20000000000000000000026 /* PhoneConnectivityService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PhoneConnectivityService.swift; sourceTree = "<group>"; };
+		A20000000000000000000027 /* WatchConnectivityService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WatchConnectivityService.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -191,6 +197,7 @@
 				A20000000000000000000003 /* TrainingPlan.swift */,
 				A2000000000000000000000D /* WorkoutRecord.swift */,
 				A20000000000000000000015 /* CustomWorkout.swift */,
+				A20000000000000000000025 /* WorkoutHistoryPayload.swift */,
 			);
 			path = Models;
 			sourceTree = "<group>";
@@ -217,6 +224,7 @@
 				A20000000000000000000011 /* WorkoutLocationService.swift */,
 				A20000000000000000000012 /* HealthKitService.swift */,
 				A20000000000000000000014 /* WorkoutReminderScheduler.swift */,
+				A20000000000000000000026 /* PhoneConnectivityService.swift */,
 			);
 			path = Services;
 			sourceTree = "<group>";
@@ -228,6 +236,7 @@
 				A20000000000000000000018 /* WatchRootView.swift */,
 				A20000000000000000000019 /* WatchWorkoutView.swift */,
 				A2000000000000000000001A /* WatchWorkoutManager.swift */,
+				A20000000000000000000027 /* WatchConnectivityService.swift */,
 				A2000000000000000000001B /* Couch5KWatch.entitlements */,
 				A2000000000000000000001F /* Assets.xcassets */,
 			);
@@ -386,6 +395,8 @@
 				A1000000000000000000001C /* AppLocalization.swift in Sources */,
 				A1000000000000000000001F /* AboutMeView.swift in Sources */,
 				A10000000000000000000020 /* AppTheme.swift in Sources */,
+				A10000000000000000000022 /* WorkoutHistoryPayload.swift in Sources */,
+				A10000000000000000000024 /* PhoneConnectivityService.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -409,7 +420,8 @@
 				A10000000000000000000017 /* WatchWorkoutManager.swift in Sources */,
 				A10000000000000000000018 /* TrainingPlan.swift in Sources */,
 				A1000000000000000000001D /* AppLocalization.swift in Sources */,
-				A10000000000000000000021 /* HealthKitService.swift in Sources */,
+				A10000000000000000000023 /* WorkoutHistoryPayload.swift in Sources */,
+				A10000000000000000000025 /* WatchConnectivityService.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

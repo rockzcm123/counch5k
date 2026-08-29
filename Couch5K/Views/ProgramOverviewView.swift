@@ -11,6 +11,7 @@ struct ProgramOverviewView: View {
     private var records: [WorkoutRecord]
 
     @StateObject private var activeStore = ActiveWorkoutStore()
+    @StateObject private var connectivityService = PhoneConnectivityService()
     @State private var expandedWeeks: Set<Int> = [1]
     @State private var selectedWeekNumber: Int?
     @State private var isShowingSettings = false
@@ -101,6 +102,21 @@ struct ProgramOverviewView: View {
         .onChange(of: scenePhase) { oldPhase, newPhase in
             guard oldPhase == .background, newPhase == .active else { return }
             Task { await syncWatchWorkouts() }
+        }
+        .onChange(of: records) { _, newRecords in
+            connectivityService.update(records: newRecords)
+        }
+        .task {
+            connectivityService.onSyncRequested = {
+                await syncWatchWorkouts()
+                // Belt-and-suspenders alongside the .onChange(of: records)
+                // above: read the @Query's current value directly so the
+                // Watch's "push" reply reflects the sync it just asked for,
+                // without depending on SwiftUI's update-cycle timing.
+                connectivityService.update(records: records)
+            }
+            connectivityService.update(records: records)
+            connectivityService.activate()
         }
     }
 
