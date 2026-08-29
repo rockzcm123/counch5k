@@ -1,10 +1,13 @@
 import SwiftUI
+import WatchKit
 
 struct WatchRootView: View {
     let plan: TrainingPlan
 
     @State private var history: [WorkoutHistoryEntry] = []
     @State private var isLoadingProgress = true
+    @State private var isSyncing = false
+    @State private var syncErrorMessage: String?
 
     private let healthService = HealthKitService()
 
@@ -19,9 +22,63 @@ struct WatchRootView: View {
             historyPage
         }
         .task {
-            try? await healthService.requestAuthorization()
-            history = (try? await healthService.fetchWorkoutHistory()) ?? []
+            await sync()
             isLoadingProgress = false
+        }
+        .alert(
+            L10n.healthApp,
+            isPresented: Binding(
+                get: { syncErrorMessage != nil },
+                set: { if !$0 { syncErrorMessage = nil } }
+            )
+        ) {
+            Button(L10n.gotIt) {
+                syncErrorMessage = nil
+            }
+        } message: {
+            Text(syncErrorMessage ?? "")
+        }
+    }
+
+    /// Refreshes this device's view of history/progress from HealthKit, the
+    /// only channel this app has to the iPhone app (see
+    /// HealthKitService.fetchWorkoutHistory). Both the "pull" and "push"
+    /// buttons trigger this same check — there's no direct Watch-to-iPhone
+    /// connection, so both really mean "re-check what Health currently
+    /// knows," just started from whichever side the user reached for.
+    private func sync() async {
+        guard !isSyncing else { return }
+        isSyncing = true
+        defer { isSyncing = false }
+
+        WKInterfaceDevice.current().play(.click)
+        do {
+            try await healthService.requestAuthorization()
+            history = try await healthService.fetchWorkoutHistory()
+        } catch {
+            syncErrorMessage = error.localizedDescription
+        }
+    }
+
+    @ToolbarContentBuilder
+    private var syncToolbarContent: some ToolbarContent {
+        ToolbarItem(placement: .topBarLeading) {
+            Button {
+                Task { await sync() }
+            } label: {
+                Image(systemName: "arrow.down.circle")
+            }
+            .disabled(isSyncing)
+            .accessibilityLabel(L10n.pullFromIphone)
+        }
+        ToolbarItem(placement: .topBarTrailing) {
+            Button {
+                Task { await sync() }
+            } label: {
+                Image(systemName: "arrow.up.circle")
+            }
+            .disabled(isSyncing)
+            .accessibilityLabel(L10n.pushToIphone)
         }
     }
 
@@ -62,6 +119,9 @@ struct WatchRootView: View {
             }
             .padding()
             .navigationTitle(L10n.appName)
+            .toolbar {
+                syncToolbarContent
+            }
         }
     }
 

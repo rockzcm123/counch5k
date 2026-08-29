@@ -160,7 +160,18 @@ struct ProgramOverviewView: View {
         }
         guard !reconciled.isEmpty else { return }
 
+        // Append-only: every reconciled workout becomes a brand new
+        // WorkoutRecord (modelContext.insert only, never a lookup-and-update
+        // of an existing one), so nothing already stored locally — including
+        // a user's own notes on a past record — can ever be touched by sync.
+        // `insertedIDs` additionally guards against this single batch itself
+        // containing a duplicate healthKitWorkoutID (defensive; HealthKit
+        // shouldn't return one, but this keeps the guarantee airtight even
+        // if that assumption is ever wrong).
+        var insertedIDs = existingIDs
         for workout in reconciled {
+            guard insertedIDs.insert(workout.healthKitWorkoutID).inserted else { continue }
+
             let session = plan.workout(weekNumber: workout.weekNumber, sessionDay: workout.sessionDay)?.session
             let record = WorkoutRecord(
                 weekNumber: workout.weekNumber,

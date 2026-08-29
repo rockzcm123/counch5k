@@ -38,6 +38,9 @@ enum L10n {
 
     static let appName = "Couch 5K"
 
+    static var pullFromIphone: String { text("从 iPhone 同步", "Sync from iPhone") }
+    static var pushToIphone: String { text("同步到 iPhone", "Sync to iPhone") }
+
     static var continueAction: String { text("继续", "Continue") }
     static var done: String { text("完成", "Done") }
     static var cancel: String { text("取消", "Cancel") }
