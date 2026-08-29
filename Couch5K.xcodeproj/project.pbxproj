@@ -690,7 +690,7 @@
 				ENTITLEMENTS_ALLOWED = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_CFBundleDisplayName = "Couch 5K";
-				INFOPLIST_KEY_NSHealthShareUsageDescription = "用于读取手表记录的跑步训练数据。";
+				INFOPLIST_KEY_NSHealthShareUsageDescription = "An App to let anyone to run from 0 to 5k in 9 weeks";
 				INFOPLIST_KEY_NSHealthUpdateUsageDescription = "用于在手表上记录跑步训练。";
 				INFOPLIST_KEY_WKApplication = YES;
 				INFOPLIST_KEY_WKCompanionAppBundleIdentifier = com.Rock.Couch5K;
@@ -718,7 +718,7 @@
 				ENTITLEMENTS_ALLOWED = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_CFBundleDisplayName = "Couch 5K";
-				INFOPLIST_KEY_NSHealthShareUsageDescription = "用于读取手表记录的跑步训练数据。";
+				INFOPLIST_KEY_NSHealthShareUsageDescription = "An App to let anyone to run from 0 to 5k in 9 weeks";
 				INFOPLIST_KEY_NSHealthUpdateUsageDescription = "用于在手表上记录跑步训练。";
 				INFOPLIST_KEY_WKApplication = YES;
 				INFOPLIST_KEY_WKCompanionAppBundleIdentifier = com.Rock.Couch5K;

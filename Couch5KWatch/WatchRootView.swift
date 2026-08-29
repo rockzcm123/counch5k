@@ -74,9 +74,6 @@ struct WatchRootView: View {
             }
             .padding()
             .navigationTitle(L10n.appName)
-            .toolbar {
-                syncToolbarContent
-            }
         }
     }
 
@@ -146,6 +143,9 @@ struct WatchRootView: View {
                 }
             }
             .navigationTitle(L10n.historyTab)
+            .toolbar {
+                syncToolbarContent
+            }
         }
     }
 
