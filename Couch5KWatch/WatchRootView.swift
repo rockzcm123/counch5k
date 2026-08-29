@@ -119,55 +119,67 @@ struct WatchRootView: View {
             Group {
                 if isLoadingProgress {
                     ProgressView()
-                } else if connectivity.history.isEmpty {
-                    Text(L10n.noHistory)
-                        .font(.headline)
-                        .multilineTextAlignment(.center)
-                        .padding()
                 } else {
-                    List(connectivity.history) { entry in
-                        VStack(alignment: .leading, spacing: 2) {
-                            Text(entry.title)
-                                .font(.headline)
+                    List {
+                        // Labeled buttons (not just icons) so it's obvious
+                        // what each one does, unlike the earlier icon-only
+                        // toolbar buttons.
+                        Section {
+                            syncButton(
+                                title: L10n.pullFromIphone,
+                                systemImage: "arrow.down.circle"
+                            ) {
+                                await connectivity.pull()
+                            }
+                            syncButton(
+                                title: L10n.pushToIphone,
+                                systemImage: "arrow.up.circle"
+                            ) {
+                                await connectivity.push()
+                            }
+                        }
 
-                            HStack(spacing: 6) {
-                                Text(entry.completedAt, format: .dateTime.month(.abbreviated).day())
-                                if entry.distanceMeters > 0 {
-                                    Text(String(format: "· %.2f km", entry.distanceMeters / 1_000))
+                        if connectivity.history.isEmpty {
+                            Text(L10n.noHistory)
+                                .font(.headline)
+                                .multilineTextAlignment(.center)
+                                .padding()
+                        } else {
+                            ForEach(connectivity.history) { entry in
+                                VStack(alignment: .leading, spacing: 2) {
+                                    Text(entry.title)
+                                        .font(.headline)
+
+                                    HStack(spacing: 6) {
+                                        Text(entry.completedAt, format: .dateTime.month(.abbreviated).day())
+                                        if entry.distanceMeters > 0 {
+                                            Text(String(format: "· %.2f km", entry.distanceMeters / 1_000))
+                                        }
+                                    }
+                                    .font(.caption2)
+                                    .foregroundStyle(.secondary)
                                 }
                             }
-                            .font(.caption2)
-                            .foregroundStyle(.secondary)
                         }
                     }
                 }
             }
             .navigationTitle(L10n.historyTab)
-            .toolbar {
-                syncToolbarContent
-            }
         }
     }
 
-    @ToolbarContentBuilder
-    private var syncToolbarContent: some ToolbarContent {
-        ToolbarItem(placement: .topBarLeading) {
-            Button {
-                WKInterfaceDevice.current().play(.click)
-                Task { await connectivity.pull() }
-            } label: {
-                Image(systemName: "arrow.down.circle")
-            }
-            .accessibilityLabel(L10n.pullFromIphone)
+    private func syncButton(
+        title: String,
+        systemImage: String,
+        action: @escaping () async -> Void
+    ) -> some View {
+        Button {
+            WKInterfaceDevice.current().play(.click)
+            Task { await action() }
+        } label: {
+            Label(title, systemImage: systemImage)
         }
-        ToolbarItem(placement: .topBarTrailing) {
-            Button {
-                WKInterfaceDevice.current().play(.click)
-                Task { await connectivity.push() }
-            } label: {
-                Image(systemName: "arrow.up.circle")
-            }
-            .accessibilityLabel(L10n.pushToIphone)
-        }
+        .buttonStyle(.bordered)
+        .tint(.brandPink)
     }
 }
