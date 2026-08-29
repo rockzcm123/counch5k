@@ -102,6 +102,7 @@ struct WatchWorkoutView: View {
     @StateObject private var workoutManager = WatchWorkoutManager()
     @State private var errorMessage: String?
     @State private var workoutStartedAt: Date?
+    @State private var isConfirmingEnd = false
 
     private let weekNumber: Int
     private let timer = Timer.publish(every: 0.25, on: .main, in: .common).autoconnect()
@@ -157,8 +158,22 @@ struct WatchWorkoutView: View {
             guard oldValue != newValue else { return }
             WKInterfaceDevice.current().play(engine.state == .completed ? .success : .notification)
             if engine.state == .completed {
-                workoutManager.finish()
+                Task { await workoutManager.finish() }
             }
+        }
+        .toolbar {
+            endToolbarContent
+        }
+        .confirmationDialog(L10n.confirmEndWorkout, isPresented: $isConfirmingEnd) {
+            Button(L10n.endWorkout, role: .destructive) {
+                Task {
+                    await workoutManager.finish()
+                    if workoutManager.errorMessage == nil {
+                        dismiss()
+                    }
+                }
+            }
+            Button(L10n.resumeWorkout, role: .cancel) {}
         }
         .alert(
             "无法开始训练",
@@ -172,6 +187,19 @@ struct WatchWorkoutView: View {
             }
         } message: {
             Text(errorMessage ?? "")
+        }
+        .alert(
+            L10n.healthApp,
+            isPresented: Binding(
+                get: { workoutManager.errorMessage != nil },
+                set: { if !$0 { workoutManager.clearError() } }
+            )
+        ) {
+            Button(L10n.gotIt) {
+                workoutManager.clearError()
+            }
+        } message: {
+            Text(workoutManager.errorMessage ?? "")
         }
     }
 
@@ -218,6 +246,17 @@ struct WatchWorkoutView: View {
                 }
                 .tint(.brandPink)
                 .accessibilityLabel(engine.state == .paused ? "继续" : "暂停")
+            }
+        }
+    }
+
+    @ToolbarContentBuilder
+    private var endToolbarContent: some ToolbarContent {
+        if engine.state == .running || engine.state == .paused {
+            ToolbarItem(placement: .cancellationAction) {
+                Button(L10n.end) {
+                    isConfirmingEnd = true
+                }
             }
         }
     }

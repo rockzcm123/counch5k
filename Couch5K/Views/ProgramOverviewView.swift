@@ -6,6 +6,7 @@ struct ProgramOverviewView: View {
     let plan: TrainingPlan
 
     @Environment(\.modelContext) private var modelContext
+    @Environment(\.scenePhase) private var scenePhase
     @Query(sort: \WorkoutRecord.completedAt, order: .reverse)
     private var records: [WorkoutRecord]
 
@@ -16,6 +17,7 @@ struct ProgramOverviewView: View {
     @State private var motivationPromptOffset = 0
     @State private var selectedWorkout: SelectedWorkout?
     @State private var healthMessage: String?
+    @State private var isSyncingWatchWorkouts = false
     @AppStorage(AppTheme.storageKey) private var colorTheme = AppTheme.pink.rawValue
     @AppStorage("profileName") private var profileName = ""
     @AppStorage("profilePhotoData") private var profilePhotoData = Data()
@@ -47,7 +49,7 @@ struct ProgramOverviewView: View {
                     Label(L10n.planTab, systemImage: "figure.run")
                 }
 
-            HistoryView(records: records)
+            HistoryView(records: records, onRefresh: { await syncWatchWorkouts() })
                 .tabItem {
                     Label(L10n.historyTab, systemImage: "clock.arrow.circlepath")
                 }
@@ -96,6 +98,10 @@ struct ProgramOverviewView: View {
         } message: {
             Text(healthMessage ?? "")
         }
+        .onChange(of: scenePhase) { oldPhase, newPhase in
+            guard oldPhase == .background, newPhase == .active else { return }
+            Task { await syncWatchWorkouts() }
+        }
     }
 
     private var planView: some View {
@@ -121,7 +127,11 @@ struct ProgramOverviewView: View {
                 PreferencesView()
             }
             .task {
-                try? await healthService.requestAuthorization()
+                do {
+                    try await healthService.requestAuthorization()
+                } catch {
+                    healthMessage = error.localizedDescription
+                }
                 await syncWatchWorkouts()
             }
         }
@@ -129,16 +139,26 @@ struct ProgramOverviewView: View {
 
     /// Pulls in any plan workouts completed on Apple Watch that this app
     /// doesn't have locally yet, reconstructing them from the Couch5K
-    /// metadata the Watch app attaches to its HealthKit workouts.
+    /// metadata the Watch app attaches to its HealthKit workouts. Runs on
+    /// first appearance, whenever the app returns to foreground, and on
+    /// manual pull-to-refresh from the History tab.
     private func syncWatchWorkouts() async {
+        guard !isSyncingWatchWorkouts else { return }
+        isSyncingWatchWorkouts = true
+        defer { isSyncingWatchWorkouts = false }
+
         let existingIDs = Set(records.compactMap { record in
             record.healthKitWorkoutID.isEmpty ? nil : record.healthKitWorkoutID
         })
 
-        guard let reconciled = try? await healthService.fetchUnsyncedWatchWorkouts(excluding: existingIDs),
-              !reconciled.isEmpty else {
+        let reconciled: [ReconciledWorkout]
+        do {
+            reconciled = try await healthService.fetchUnsyncedWatchWorkouts(excluding: existingIDs)
+        } catch {
+            healthMessage = error.localizedDescription
             return
         }
+        guard !reconciled.isEmpty else { return }
 
         for workout in reconciled {
             let session = plan.workout(weekNumber: workout.weekNumber, sessionDay: workout.sessionDay)?.session

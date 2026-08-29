@@ -21,7 +21,7 @@ final class WatchWorkoutManager: NSObject, ObservableObject {
         let distanceType = HKQuantityType(.distanceWalkingRunning)
         try await healthStore.requestAuthorization(
             toShare: [workoutType, distanceType],
-            read: [heartRateType, distanceType]
+            read: [heartRateType, distanceType, workoutType]
         )
 
         let configuration = HKWorkoutConfiguration()
@@ -64,26 +64,42 @@ final class WatchWorkoutManager: NSObject, ObservableObject {
         session?.resume()
     }
 
-    func finish(at date: Date = .now) {
+    func clearError() {
+        errorMessage = nil
+    }
+
+    /// Ends the session and commits the workout to HealthKit, awaiting
+    /// confirmation that it actually landed before returning — callers rely
+    /// on this to know it's safe to dismiss (the Watch has no local history
+    /// store, so an incomplete commit would otherwise lose the run).
+    /// Failures are still routed through `errorMessage`, not thrown, to
+    /// match this class's existing error-handling convention.
+    func finish(at date: Date = .now) async {
         session?.end()
         guard let builder else { return }
 
-        builder.endCollection(withEnd: date) { [weak self] success, error in
-            if let error {
-                let message = error.localizedDescription
-                Task { @MainActor [weak self, message] in
-                    self?.errorMessage = message
-                }
-                return
-            }
-            guard success else { return }
-            guard let manager = self else { return }
-            builder.finishWorkout { [weak manager] _, error in
+        await withCheckedContinuation { (continuation: CheckedContinuation<Void, Never>) in
+            builder.endCollection(withEnd: date) { [weak self] success, error in
                 if let error {
                     let message = error.localizedDescription
-                    Task { @MainActor [weak manager, message] in
-                        manager?.errorMessage = message
+                    Task { @MainActor [weak self, message] in
+                        self?.errorMessage = message
                     }
+                    continuation.resume()
+                    return
+                }
+                guard success, let self else {
+                    continuation.resume()
+                    return
+                }
+                builder.finishWorkout { [weak self] _, error in
+                    if let error {
+                        let message = error.localizedDescription
+                        Task { @MainActor [weak self, message] in
+                            self?.errorMessage = message
+                        }
+                    }
+                    continuation.resume()
                 }
             }
         }

@@ -5,6 +5,7 @@ import MapKit
 
 struct HistoryView: View {
     let records: [WorkoutRecord]
+    let onRefresh: () async -> Void
 
     @Environment(\.modelContext) private var modelContext
     @AppStorage("unitSystem") private var unitSystem = "metric"
@@ -27,11 +28,15 @@ struct HistoryView: View {
         NavigationStack {
             Group {
                 if records.isEmpty {
-                    ContentUnavailableView(
-                        L10n.noHistory,
-                        systemImage: "figure.run",
-                        description: Text(L10n.noHistoryDescription)
-                    )
+                    List {
+                        ContentUnavailableView(
+                            L10n.noHistory,
+                            systemImage: "figure.run",
+                            description: Text(L10n.noHistoryDescription)
+                        )
+                        .listRowBackground(Color.clear)
+                        .listRowSeparator(.hidden)
+                    }
                 } else {
                     List {
                         summarySection
@@ -81,6 +86,9 @@ struct HistoryView: View {
                 }
             }
             .navigationTitle(L10n.workoutHistory)
+            .refreshable {
+                await onRefresh()
+            }
             .onChange(of: selectedDate) { _, _ in
                 visibleRecordCount = HistoryView.pageSize
             }
