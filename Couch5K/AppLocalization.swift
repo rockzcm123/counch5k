@@ -53,8 +53,14 @@ enum L10n {
     static var settings: String { text("设置", "Settings") }
 
     static var planTab: String { text("计划", "Plan") }
+    static var startTab: String { text("开始", "Start") }
     static var historyTab: String { text("历史", "History") }
     static var customTab: String { text("自定义", "Custom") }
+    static var start: String { text("开始", "Start") }
+
+    static func personalGreeting(_ name: String) -> String {
+        text("你好，\(name)", "Hi, \(name)")
+    }
     static var healthApp: String { text("健康 App", "Health") }
     static var unfinishedWorkout: String { text("未完成的训练", "Unfinished workout") }
     static var planComplete: String { text("计划已完成", "Plan complete") }

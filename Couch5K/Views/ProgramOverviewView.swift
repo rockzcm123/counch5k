@@ -20,6 +20,7 @@ struct ProgramOverviewView: View {
     @State private var healthMessage: String?
     @State private var isSyncingWatchWorkouts = false
     @AppStorage(AppTheme.storageKey) private var colorTheme = AppTheme.pink.rawValue
+    @AppStorage("profileName") private var profileName = ""
     @AppStorage("profilePhotoData") private var profilePhotoData = Data()
 
     private let healthService = HealthKitService()
@@ -45,6 +46,11 @@ struct ProgramOverviewView: View {
 
     var body: some View {
         TabView {
+            startView
+                .tabItem {
+                    Label(L10n.startTab, systemImage: "play.circle.fill")
+                }
+
             planView
                 .tabItem {
                     Label(L10n.planTab, systemImage: "figure.run")
@@ -117,6 +123,18 @@ struct ProgramOverviewView: View {
             }
             connectivityService.update(records: records)
             connectivityService.activate()
+
+            // Deliberately on the top-level TabView, not inside planView:
+            // TabView only builds a tab's content the first time it's
+            // visited, so with Start (not Plan) as the default tab, this
+            // needs to live somewhere that always runs at launch regardless
+            // of which tab that is.
+            do {
+                try await healthService.requestAuthorization()
+            } catch {
+                healthMessage = error.localizedDescription
+            }
+            await syncWatchWorkouts()
         }
     }
 
@@ -127,7 +145,6 @@ struct ProgramOverviewView: View {
                     heroSection
 
                     VStack(alignment: .leading, spacing: 16) {
-                        dailyMotivationCard
                         weekStrip
                         selectedWeekSection
                     }
@@ -141,15 +158,59 @@ struct ProgramOverviewView: View {
             .sheet(isPresented: $isShowingSettings) {
                 PreferencesView()
             }
-            .task {
-                do {
-                    try await healthService.requestAuthorization()
-                } catch {
-                    healthMessage = error.localizedDescription
-                }
-                await syncWatchWorkouts()
-            }
         }
+    }
+
+    /// A focused, single-action tab: a personal greeting, one big circular
+    /// Start button (same target workout + resume logic as the Plan tab's
+    /// hero CTA), and the daily running-habit card underneath — on the same
+    /// neutral background as the rest of the app, with the accent color
+    /// reserved for the button itself rather than filling the whole screen.
+    private var startView: some View {
+        let workout = activeWorkout ?? nextWorkout ?? plan.orderedWorkouts.last
+        let isResuming = activeWorkout != nil
+
+        return ScrollView {
+            VStack(spacing: 28) {
+                Text(
+                    profileName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+                        ? plan.title
+                        : L10n.personalGreeting(profileName)
+                )
+                .font(.title2.bold())
+                .foregroundStyle(.primary)
+                .frame(maxWidth: .infinity, alignment: .leading)
+
+                Button {
+                    guard let workout else { return }
+                    selectedWorkout = SelectedWorkout(
+                        workout: workout,
+                        snapshot: isResuming ? activeStore.snapshot : nil
+                    )
+                } label: {
+                    VStack(spacing: 6) {
+                        Image(systemName: isResuming ? "arrow.clockwise" : "play.fill")
+                            .font(.system(size: 42, weight: .bold))
+                        Text(L10n.start)
+                            .font(.title.bold())
+                    }
+                    .foregroundStyle(.white)
+                    .frame(width: 220, height: 220)
+                    .background(themeColor, in: Circle())
+                    .shadow(color: themeColor.opacity(0.35), radius: 20, y: 10)
+                }
+                .buttonStyle(.plain)
+                .disabled(workout == nil)
+                .accessibilityLabel(isResuming ? L10n.resumeWorkout : L10n.startWorkout)
+                .padding(.vertical, 8)
+
+                dailyMotivationCard
+            }
+            .padding(.horizontal, 20)
+            .padding(.top, 20)
+            .padding(.bottom, 24)
+        }
+        .background(Color(.systemGroupedBackground))
     }
 
     /// Pulls in any plan workouts completed on Apple Watch that this app
