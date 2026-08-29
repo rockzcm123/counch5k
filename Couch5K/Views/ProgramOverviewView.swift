@@ -127,7 +127,6 @@ struct ProgramOverviewView: View {
                     heroSection
 
                     VStack(alignment: .leading, spacing: 16) {
-                        statsRow
                         dailyMotivationCard
                         weekStrip
                         selectedWeekSection
@@ -319,29 +318,6 @@ struct ProgramOverviewView: View {
         .frame(width: 44, height: 44)
         .clipShape(Circle())
         .accessibilityHidden(true)
-    }
-
-    private var statsRow: some View {
-        HStack(spacing: 12) {
-            statTile(value: "\(completedKeys.count)/\(plan.sessionCount)", label: L10n.completions)
-            statTile(value: "\(currentWeekNumber)/\(plan.weeks.count)", label: L10n.week)
-        }
-    }
-
-    private func statTile(value: String, label: String) -> some View {
-        VStack(alignment: .leading, spacing: 4) {
-            Text(value)
-                .font(.title2.bold())
-                .lineLimit(1)
-                .minimumScaleFactor(0.7)
-            Text(label)
-                .font(.caption)
-                .foregroundStyle(.secondary)
-        }
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .padding(.vertical, 14)
-        .padding(.horizontal, 16)
-        .background(Color(.secondarySystemGroupedBackground), in: RoundedRectangle(cornerRadius: 16))
     }
 
     private var currentWeekNumber: Int {
