@@ -20,7 +20,6 @@ struct ProgramOverviewView: View {
     @State private var healthMessage: String?
     @State private var isSyncingWatchWorkouts = false
     @AppStorage(AppTheme.storageKey) private var colorTheme = AppTheme.pink.rawValue
-    @AppStorage("profileName") private var profileName = ""
     @AppStorage("profilePhotoData") private var profilePhotoData = Data()
 
     private let healthService = HealthKitService()
@@ -36,14 +35,6 @@ struct ProgramOverviewView: View {
     /// banner unchanged.
     private var isLightSurface: Bool {
         AppTheme(rawValue: colorTheme)?.isLightSurface ?? false
-    }
-
-    private var greeting: String {
-        switch Calendar.current.component(.hour, from: .now) {
-        case 5..<12: L10n.greetingMorning
-        case 12..<18: L10n.greetingAfternoon
-        default: L10n.greetingEvening
-        }
     }
 
     private struct SelectedWorkout: Identifiable {
@@ -226,21 +217,6 @@ struct ProgramOverviewView: View {
         return VStack(alignment: .leading, spacing: 18) {
             HStack(spacing: 12) {
                 heroAvatar
-
-                VStack(alignment: .leading, spacing: 2) {
-                    Text(greeting)
-                        .font(.caption.weight(.medium))
-                        .foregroundStyle(secondaryText)
-
-                    Text(
-                        profileName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
-                            ? plan.title
-                            : L10n.personalGreeting(profileName)
-                    )
-                    .font(.title3.bold())
-                    .foregroundStyle(primaryText)
-                    .lineLimit(1)
-                }
 
                 Spacer(minLength: 8)
 
