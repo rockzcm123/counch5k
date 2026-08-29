@@ -190,6 +190,7 @@ enum L10n {
     static var themeOrange: String { text("橙色", "Orange") }
     static var themePurple: String { text("紫色", "Purple") }
     static var themeTeal: String { text("青色", "Teal") }
+    static var themeWhite: String { text("简约白", "Simple White") }
     static var reminderSetupFailed: String { text("无法设置提醒", "Unable to Set Reminder") }
 
     static var profile: String { text("个人资料", "Profile") }

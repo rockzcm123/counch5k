@@ -29,6 +29,15 @@ struct ProgramOverviewView: View {
         AppTheme(rawValue: colorTheme)?.color ?? .brandPink
     }
 
+    /// True for the "Simple White" theme: the hero banner switches from a
+    /// solid accent-color background with white text to a plain white/light
+    /// surface with dark text and the accent reserved for the CTA pill —
+    /// the Wise-app look — while every other theme keeps its full-color
+    /// banner unchanged.
+    private var isLightSurface: Bool {
+        AppTheme(rawValue: colorTheme)?.isLightSurface ?? false
+    }
+
     private var greeting: String {
         switch Calendar.current.component(.hour, from: .now) {
         case 5..<12: L10n.greetingMorning
@@ -211,6 +220,8 @@ struct ProgramOverviewView: View {
     private var heroSection: some View {
         let workout = activeWorkout ?? nextWorkout ?? plan.orderedWorkouts.last
         let isResuming = activeWorkout != nil
+        let primaryText: Color = isLightSurface ? .primary : .white
+        let secondaryText: Color = isLightSurface ? .secondary : .white.opacity(0.75)
 
         return VStack(alignment: .leading, spacing: 18) {
             HStack(spacing: 12) {
@@ -219,7 +230,7 @@ struct ProgramOverviewView: View {
                 VStack(alignment: .leading, spacing: 2) {
                     Text(greeting)
                         .font(.caption.weight(.medium))
-                        .foregroundStyle(.white.opacity(0.75))
+                        .foregroundStyle(secondaryText)
 
                     Text(
                         profileName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
@@ -227,7 +238,7 @@ struct ProgramOverviewView: View {
                             : L10n.personalGreeting(profileName)
                     )
                     .font(.title3.bold())
-                    .foregroundStyle(.white)
+                    .foregroundStyle(primaryText)
                     .lineLimit(1)
                 }
 
@@ -238,9 +249,12 @@ struct ProgramOverviewView: View {
                 } label: {
                     Image(systemName: "gearshape.fill")
                         .font(.subheadline)
-                        .foregroundStyle(.white)
+                        .foregroundStyle(isLightSurface ? Color.secondary : Color.white)
                         .frame(width: 34, height: 34)
-                        .background(Color.white.opacity(0.18), in: Circle())
+                        .background(
+                            isLightSurface ? Color(.systemGray5) : Color.white.opacity(0.18),
+                            in: Circle()
+                        )
                 }
                 .accessibilityLabel(L10n.settings)
             }
@@ -249,15 +263,15 @@ struct ProgramOverviewView: View {
                 VStack(alignment: .leading, spacing: 4) {
                     Text(isResuming ? L10n.unfinishedWorkout : nextWorkout == nil ? L10n.planComplete : L10n.nextWorkout)
                         .font(.caption.weight(.semibold))
-                        .foregroundStyle(.white.opacity(0.75))
+                        .foregroundStyle(secondaryText)
 
                     Text(workout.displayTitle)
                         .font(.title2.bold())
-                        .foregroundStyle(.white)
+                        .foregroundStyle(primaryText)
 
                     Text("\(workout.session.totalDuration.workoutDurationText) · \(workout.session.summary)")
                         .font(.footnote)
-                        .foregroundStyle(.white.opacity(0.85))
+                        .foregroundStyle(isLightSurface ? Color.secondary : .white.opacity(0.85))
                         .fixedSize(horizontal: false, vertical: true)
                         .frame(maxWidth: .infinity, alignment: .leading)
                 }
@@ -275,19 +289,25 @@ struct ProgramOverviewView: View {
                     )
                     .imageScale(.large)
                     .font(.title3.bold())
-                    .foregroundStyle(themeColor)
+                    // Other themes use a white pill with colored text; this
+                    // theme inverts that to a colored (green) pill with
+                    // white text instead — closer to Wise's own solid-green
+                    // CTA buttons, and consistent with how this accent is
+                    // used as a white-on-color fill everywhere else in the
+                    // app (calendar badges, checkmarks).
+                    .foregroundStyle(isLightSurface ? .white : themeColor)
                     .frame(maxWidth: .infinity)
                     .frame(height: 64)
                 }
-                .background(Color.white, in: Capsule())
-                .shadow(color: .black.opacity(0.18), radius: 14, y: 6)
+                .background(isLightSurface ? themeColor : Color.white, in: Capsule())
+                .shadow(color: .black.opacity(isLightSurface ? 0 : 0.18), radius: isLightSurface ? 0 : 14, y: isLightSurface ? 0 : 6)
                 .padding(.top, 2)
 
                 if isResuming {
                     Button(L10n.discardWorkout, role: .destructive) {
                         activeStore.clear()
                     }
-                    .foregroundStyle(.white)
+                    .foregroundStyle(isLightSurface ? Color.red : Color.white)
                     .font(.footnote.weight(.medium))
                     .frame(maxWidth: .infinity)
                     .accessibilityHint(L10n.discardWorkoutHint)
@@ -298,7 +318,7 @@ struct ProgramOverviewView: View {
         .padding(.top, 16)
         .padding(.bottom, 26)
         .frame(maxWidth: .infinity, alignment: .leading)
-        .background(themeColor)
+        .background(isLightSurface ? Color(.systemBackground) : themeColor)
     }
 
     private var heroAvatar: some View {
@@ -310,9 +330,9 @@ struct ProgramOverviewView: View {
             } else {
                 Image(systemName: "person.fill")
                     .font(.system(size: 18))
-                    .foregroundStyle(.white)
+                    .foregroundStyle(isLightSurface ? Color.secondary : Color.white)
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
-                    .background(Color.white.opacity(0.2))
+                    .background(isLightSurface ? Color(.systemGray5) : Color.white.opacity(0.2))
             }
         }
         .frame(width: 44, height: 44)
