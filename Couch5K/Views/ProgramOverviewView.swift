@@ -161,11 +161,12 @@ struct ProgramOverviewView: View {
         }
     }
 
-    /// A focused, single-action tab: a personal greeting, one big circular
-    /// Start button (same target workout + resume logic as the Plan tab's
-    /// hero CTA), and the daily running-habit card underneath — on the same
-    /// neutral background as the rest of the app, with the accent color
-    /// reserved for the button itself rather than filling the whole screen.
+    /// A focused, single-action tab: a personal greeting, the daily
+    /// running-habit card, then one big circular Start button (same target
+    /// workout + resume logic as the Plan tab's hero CTA) with today's
+    /// program detail underneath it — on the same neutral background as
+    /// the rest of the app, with the accent color reserved for the button
+    /// itself rather than filling the whole screen.
     private var startView: some View {
         let workout = activeWorkout ?? nextWorkout ?? plan.orderedWorkouts.last
         let isResuming = activeWorkout != nil
@@ -180,6 +181,8 @@ struct ProgramOverviewView: View {
                 .font(.title2.bold())
                 .foregroundStyle(.primary)
                 .frame(maxWidth: .infinity, alignment: .leading)
+
+                dailyMotivationCard
 
                 Button {
                     guard let workout else { return }
@@ -204,7 +207,19 @@ struct ProgramOverviewView: View {
                 .accessibilityLabel(isResuming ? L10n.resumeWorkout : L10n.startWorkout)
                 .padding(.vertical, 8)
 
-                dailyMotivationCard
+                if let workout {
+                    VStack(spacing: 4) {
+                        Text(workout.displayTitle)
+                            .font(.headline)
+                            .multilineTextAlignment(.center)
+
+                        Text("\(workout.session.totalDuration.workoutDurationText) · \(workout.session.summary)")
+                            .font(.subheadline)
+                            .foregroundStyle(.secondary)
+                            .multilineTextAlignment(.center)
+                    }
+                    .frame(maxWidth: .infinity)
+                }
             }
             .padding(.horizontal, 20)
             .padding(.top, 20)
@@ -314,32 +329,10 @@ struct ProgramOverviewView: View {
                 }
                 .frame(maxWidth: .infinity, alignment: .leading)
 
-                Button {
-                    selectedWorkout = SelectedWorkout(
-                        workout: workout,
-                        snapshot: isResuming ? activeStore.snapshot : nil
-                    )
-                } label: {
-                    Label(
-                        isResuming ? L10n.resumeWorkout : nextWorkout == nil ? L10n.repeatWorkout : L10n.startWorkout,
-                        systemImage: isResuming ? "arrow.clockwise" : "play.fill"
-                    )
-                    .imageScale(.large)
-                    .font(.title3.bold())
-                    // Other themes use a white pill with colored text; this
-                    // theme inverts that to a colored (green) pill with
-                    // white text instead — closer to Wise's own solid-green
-                    // CTA buttons, and consistent with how this accent is
-                    // used as a white-on-color fill everywhere else in the
-                    // app (calendar badges, checkmarks).
-                    .foregroundStyle(isLightSurface ? .white : themeColor)
-                    .frame(maxWidth: .infinity)
-                    .frame(height: 64)
-                }
-                .background(isLightSurface ? themeColor : Color.white, in: Capsule())
-                .shadow(color: .black.opacity(isLightSurface ? 0 : 0.18), radius: isLightSurface ? 0 : 14, y: isLightSurface ? 0 : 6)
-                .padding(.top, 2)
-
+                // The "Start/Resume workout" CTA now lives on the Start
+                // tab; this hero keeps just the at-a-glance summary of
+                // what's next, plus the discard option below for clearing
+                // a stuck in-progress workout.
                 if isResuming {
                     Button(L10n.discardWorkout, role: .destructive) {
                         activeStore.clear()
