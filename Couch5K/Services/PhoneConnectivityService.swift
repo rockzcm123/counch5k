@@ -27,6 +27,26 @@ final class PhoneConnectivityService: NSObject, ObservableObject {
     /// from without this service needing its own SwiftData access.
     func update(records: [WorkoutRecord]) {
         currentRecords = records
+        publishContext()
+    }
+
+    /// Best-effort background delivery to the Watch via WCSession's
+    /// `applicationContext`. Unlike `sendMessage` (used by the explicit
+    /// Pull/Push buttons), this doesn't require either app to be reachable
+    /// right now — the system delivers it whenever it next can, including
+    /// to a Watch app that's launching cold with this iPhone app not
+    /// running. That's what the Watch reads immediately on launch (see
+    /// `WatchConnectivityService.loadInitialHistory`), so it always has
+    /// *something* to show without an error alert, instead of only ever
+    /// working while this app happens to already be open.
+    ///
+    /// Safe to call before activation finishes — it silently no-ops until
+    /// then, and gets retried by `activationDidCompleteWith` below once the
+    /// session is actually ready.
+    private func publishContext() {
+        guard WCSession.isSupported(),
+              WCSession.default.activationState == .activated else { return }
+        try? WCSession.default.updateApplicationContext(["history": encodedHistory()])
     }
 
     /// Does the actual reply-building work on the main actor (where
@@ -66,7 +86,17 @@ extension PhoneConnectivityService: WCSessionDelegate {
         _ session: WCSession,
         activationDidCompleteWith activationState: WCSessionActivationState,
         error: Error?
-    ) {}
+    ) {
+        // `publishContext()` no-ops until activation completes, so make
+        // sure the Watch gets a fresh context as soon as it does — without
+        // this, a context set via `update(records:)` before activation
+        // finished (a likely ordering, since `update` runs before
+        // `activate()` in ProgramOverviewView's launch `.task`) would
+        // otherwise never get retried.
+        Task { @MainActor [weak self] in
+            self?.publishContext()
+        }
+    }
 
     nonisolated func sessionDidBecomeInactive(_ session: WCSession) {}
 

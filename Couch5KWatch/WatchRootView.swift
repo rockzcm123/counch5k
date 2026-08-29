@@ -19,7 +19,7 @@ struct WatchRootView: View {
         }
         .task {
             connectivity.activate()
-            await connectivity.pull()
+            await connectivity.loadInitialHistory()
             isLoadingProgress = false
         }
         .alert(
